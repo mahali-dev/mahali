@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">SerialTest</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="step1">Click to enumerate USB serial adapters</string>
     <string name="action_settings">Settings</string>
 
 </resources>

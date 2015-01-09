@@ -2,8 +2,8 @@ package com.example.kingryan.serialtest;
 
 import android.content.Context;
 import android.hardware.usb.UsbManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +32,9 @@ public class MainActivity extends ActionBarActivity {
 
     public void probeUsb(View v) {
         // Handle button click
-        Log.i(TAG,"Starting probe");
+        Log.i(TAG,"Starting background service");
+
+        SerialLoopbackService.startActionLogPing(this,"this is a test!");
 
         final List<UsbSerialDriver> drivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);

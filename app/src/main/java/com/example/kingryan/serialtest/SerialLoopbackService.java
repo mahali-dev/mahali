@@ -3,9 +3,21 @@ package com.example.kingryan.serialtest;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -18,22 +30,26 @@ public class SerialLoopbackService extends IntentService {
     // TODO: Rename actions, choose action names that describe tasks that this
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String ACTION_LOG_PING = "com.example.kingryan.serialtest.action.LOGPING";
-    private static final String ACTION_BAZ = "com.example.kingryan.serialtest.action.BAZ";
+    private static final String ACTION_LOOPBACK = "com.example.kingryan.serialtest.action.LOOPBACK";
 
     // TODO: Rename parameters
     private static final String EXTRA_PARAM1 = "com.example.kingryan.serialtest.extra.PARAM1";
     private static final String EXTRA_PARAM2 = "com.example.kingryan.serialtest.extra.PARAM2";
+    private static final String PORT_PARAM = "ccom.example.kingryan.serialtest.extra.PORTPARAM";
+
+    private final String TAG = SerialLoopbackService.class.getSimpleName();
 
     // Log pinger
     private static final int MESSAGE_REFRESH = 101;
     private static final long REFRESH_TIMEOUT_MILLIS = 1000;
 
+    // LogPing handler
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_REFRESH:
-                    Log.i("IntentServicePinger", msg.toString());
+                    Log.i(TAG, msg.toString());
                     mHandler.sendEmptyMessageDelayed(MESSAGE_REFRESH, REFRESH_TIMEOUT_MILLIS);
                     break;
                 default:
@@ -43,6 +59,23 @@ public class SerialLoopbackService extends IntentService {
         }
     };
 
+    private static UsbSerialPort sPort = null;
+    private SerialInputOutputManager mSerialIoManager;
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private final SerialInputOutputManager.Listener mListener =
+            new SerialInputOutputManager.Listener() {
+
+                @Override
+                public void onRunError(Exception e) {
+                    Log.d(TAG, "Runner stopped.");
+                }
+
+                @Override
+                public void onNewData(final byte[] data) {
+                    Log.i(TAG, data.toString());
+                }
+            };
 
     /**
      * Starts this service to perform action Foo with the given parameters. If
@@ -64,11 +97,10 @@ public class SerialLoopbackService extends IntentService {
      * @see IntentService
      */
     // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
+    public static void startActionLoop(Context context, UsbSerialPort port) {
         Intent intent = new Intent(context, SerialLoopbackService.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
+        intent.setAction(ACTION_LOOPBACK);
+        intent.putExtra(PORT_PARAM, port.getPortNumber());
         context.startService(intent);
     }
 
@@ -83,10 +115,9 @@ public class SerialLoopbackService extends IntentService {
             if (ACTION_LOG_PING.equals(action)) {
                 final String param1 = intent.getStringExtra(EXTRA_PARAM1);
                 handleActionFoo(param1);
-            } else if (ACTION_BAZ.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionBaz(param1, param2);
+            } else if (ACTION_LOOPBACK.equals(action)) {
+                final int portNum = intent.getIntExtra(PORT_PARAM, -1);
+                handleActionLoopback(portNum);
             }
         }
     }
@@ -103,11 +134,65 @@ public class SerialLoopbackService extends IntentService {
     }
 
     /**
-     * Handle action Baz in the provided background thread with the provided
+     * Handle action Loopback in the provided background thread with the provided
      * parameters.
      */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void handleActionLoopback(int portNum) {
+
+        // Probe for devices
+        final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        final List<UsbSerialDriver> drivers =
+                UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
+
+        // Get the first port of the first driver
+        sPort = drivers.get(0).getPorts().get(0);
+
+        // Open a connection
+        UsbDeviceConnection connection = usbManager.openDevice(sPort.getDriver().getDevice());
+        if (connection == null) {
+            Log.e(TAG, "Error opening device");
+            return;
+        }
+
+
+        try {
+            sPort.open(connection);
+            sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+        } catch (IOException e) {
+            Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
+            try {
+                sPort.close();
+            } catch (IOException e2) {
+                // Ignore.
+            }
+            sPort = null;
+            return;
+        }
+
+        onDeviceStateChange();
+
     }
+
+    private void onDeviceStateChange() {
+        stopIoManager();
+        startIoManager();
+    }
+    private void stopIoManager() {
+        if (mSerialIoManager != null) {
+            Log.i(TAG, "Stopping io manager ..");
+            mSerialIoManager.stop();
+            mSerialIoManager = null;
+        }
+    }
+
+
+    private void startIoManager() {
+        if (sPort != null) {
+            Log.i(TAG, "Starting io manager ..");
+            mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+            mExecutor.submit(mSerialIoManager);
+        }
+    }
+
+
 }

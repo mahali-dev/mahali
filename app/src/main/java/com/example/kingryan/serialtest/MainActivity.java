@@ -13,7 +13,6 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -28,25 +27,32 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+
     }
 
     public void probeUsb(View v) {
+
+        UsbSerialPort mUsbSerialPort;
+
         // Handle button click
-        Log.i(TAG,"Starting background service");
+        Log.i(TAG,"Probing for USB devices, then starting background service.");
 
-        SerialLoopbackService.startActionLogPing(this,"this is a test!");
-
+        // TODO: the probe process should probably be handled in an AsyncTask...see example project
         final List<UsbSerialDriver> drivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
 
         Log.i(TAG,"Number of drivers: "+Integer.toString(drivers.size()));
 
-        final List<UsbSerialPort> result = new ArrayList<UsbSerialPort>();
-        for (final UsbSerialDriver driver : drivers) {
-            final List<UsbSerialPort> ports = driver.getPorts();
-            Log.d(TAG, String.format("+ %s: %s port%s",
-                    driver, Integer.valueOf(ports.size()), ports.size() == 1 ? "" : "s"));
-            result.addAll(ports);
+        if (drivers.size()>0) {
+            // Get the first port of the first driver
+            mUsbSerialPort = drivers.get(0).getPorts().get(0);
+            Log.i(TAG, "Found device: " + mUsbSerialPort.getDriver().toString());
+
+            // Start the loopback service
+            Log.i(TAG, "Starting loopback service");
+            SerialLoopbackService.startActionLoop(this,mUsbSerialPort);
+        } else {
+            Log.i(TAG,"No devices/ports found.  Can't start loopback service.");
         }
 
     }
@@ -72,7 +78,5 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
 
 }

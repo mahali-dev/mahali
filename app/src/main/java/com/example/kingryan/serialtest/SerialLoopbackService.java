@@ -23,8 +23,6 @@ import java.util.concurrent.Executors;
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  * <p/>
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
  */
 public class SerialLoopbackService extends IntentService {
     // TODO: Rename actions, choose action names that describe tasks that this
@@ -34,8 +32,6 @@ public class SerialLoopbackService extends IntentService {
 
     // TODO: Rename parameters
     private static final String EXTRA_PARAM1 = "com.example.kingryan.serialtest.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.example.kingryan.serialtest.extra.PARAM2";
-    private static final String PORT_PARAM = "ccom.example.kingryan.serialtest.extra.PORTPARAM";
 
     private final String TAG = SerialLoopbackService.class.getSimpleName();
 
@@ -73,7 +69,14 @@ public class SerialLoopbackService extends IntentService {
 
                 @Override
                 public void onNewData(final byte[] data) {
-                    Log.i(TAG, data.toString());
+                    // TODO: add code here to handle GPS data
+
+                    // Loopback the data to the serial port with a non-blocking write
+                    mSerialIoManager.writeAsync(data);
+
+                    // Also push the bytes out to the log
+                    String decoded = new String(data);
+                    Log.d(TAG, decoded+'\n');
                 }
             };
 
@@ -97,10 +100,9 @@ public class SerialLoopbackService extends IntentService {
      * @see IntentService
      */
     // TODO: Customize helper method
-    public static void startActionLoop(Context context, UsbSerialPort port) {
+    public static void startActionLoop(Context context) {
         Intent intent = new Intent(context, SerialLoopbackService.class);
         intent.setAction(ACTION_LOOPBACK);
-        intent.putExtra(PORT_PARAM, port.getPortNumber());
         context.startService(intent);
     }
 
@@ -116,8 +118,7 @@ public class SerialLoopbackService extends IntentService {
                 final String param1 = intent.getStringExtra(EXTRA_PARAM1);
                 handleActionFoo(param1);
             } else if (ACTION_LOOPBACK.equals(action)) {
-                final int portNum = intent.getIntExtra(PORT_PARAM, -1);
-                handleActionLoopback(portNum);
+                handleActionLoopback();
             }
         }
     }
@@ -137,7 +138,7 @@ public class SerialLoopbackService extends IntentService {
      * Handle action Loopback in the provided background thread with the provided
      * parameters.
      */
-    private void handleActionLoopback(int portNum) {
+    private void handleActionLoopback() {
 
         // Probe for devices
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -145,6 +146,7 @@ public class SerialLoopbackService extends IntentService {
                 UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
 
         // Get the first port of the first driver
+        // TODO: probably shouldn't be hard-coded, but multiple cables are unlikely
         sPort = drivers.get(0).getPorts().get(0);
 
         // Open a connection
@@ -154,9 +156,9 @@ public class SerialLoopbackService extends IntentService {
             return;
         }
 
-
         try {
             sPort.open(connection);
+            // TODO: port configuration should almost certainly be configuration
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
         } catch (IOException e) {
             Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
@@ -173,6 +175,8 @@ public class SerialLoopbackService extends IntentService {
 
     }
 
+
+    // NOTE: The three functions below were pulled from the usbSerialForAndroid example project
     private void onDeviceStateChange() {
         stopIoManager();
         startIoManager();
@@ -184,7 +188,6 @@ public class SerialLoopbackService extends IntentService {
             mSerialIoManager = null;
         }
     }
-
 
     private void startIoManager() {
         if (sPort != null) {

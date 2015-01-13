@@ -50,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
 
             // Start the loopback service
             Log.i(TAG, "Starting loopback service");
-            SerialLoopbackService.startActionLoop(this,mUsbSerialPort);
+            SerialLoopbackService.startActionLoop(this);
         } else {
             Log.i(TAG,"No devices/ports found.  Can't start loopback service.");
         }

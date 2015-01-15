@@ -1,4 +1,4 @@
-package com.example.kingryan.serialtest;
+package com.mahali.gpslogger;
 
 import android.app.IntentService;
 import android.content.Context;

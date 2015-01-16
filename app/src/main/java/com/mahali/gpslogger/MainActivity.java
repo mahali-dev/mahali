@@ -1,4 +1,4 @@
-package com.example.kingryan.serialtest;
+package com.mahali.gpslogger;
 
 import android.content.Context;
 import android.hardware.usb.UsbManager;

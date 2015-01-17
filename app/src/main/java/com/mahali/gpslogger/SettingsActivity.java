@@ -1,3 +1,49 @@
+//package com.mahali.gpslogger;
+//
+//import android.content.Intent;
+//import android.support.v7.app.ActionBarActivity;
+//import android.os.Bundle;
+//import android.view.Menu;
+//import android.view.MenuItem;
+//import android.widget.TextView;
+//
+//
+//public class SettingsActivity extends ActionBarActivity {
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        Intent intent = getIntent();
+//        String message = "Hello!";//intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+//
+//        TextView textView = new TextView(this);
+//        textView.setTextSize(40);
+//        textView.setText(message);
+//
+//        // Set the text view as the activity layout
+//        setContentView(textView);
+//
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle action bar item clicks here. The action bar will
+//        // automatically handle clicks on the Home/Up button, so long
+//        // as you specify a parent activity in AndroidManifest.xml.
+//        int id = item.getItemId();
+//
+//        //noinspection SimplifiableIfStatement
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
+//
+//        return super.onOptionsItemSelected(item);
+//    }
+//}
+
+
+
+
 package com.mahali.gpslogger;
 
 import android.annotation.TargetApi;
@@ -16,25 +62,29 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBarActivity;
 
 import com.mahali.gpslogger.R;
 
 import java.util.List;
 
 /**
- * A {@link PreferenceActivity} that presents a set of application settings. On
- * handset devices, settings are presented as a single list. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the list of settings.
- * <p/>
- * See <a href="http://developer.android.com/design/patterns/settings.html">
- * Android Design: Settings</a> for design guidelines and the <a
- * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
- * API Guide</a> for more information on developing a Settings UI.
- */
+* A {@link PreferenceActivity} that presents a set of application settings. On
+* handset devices, settings are presented as a single list. On tablets,
+* settings are split by category, with category headers shown to the left of
+* the list of settings.
+* <p/>
+* See <a href="http://developer.android.com/design/patterns/settings.html">
+* Android Design: Settings</a> for design guidelines and the <a
+* href="http://developer.android.com/guide/topics/ui/settings.html">Settings
+* API Guide</a> for more information on developing a Settings UI.
+*/
 public class SettingsActivity extends PreferenceActivity {
+
+    private final String TAG = MainActivity.class.getSimpleName();
     /**
      * Determines whether to always show the simplified settings UI, where
      * settings are presented in a single list. When false, settings are shown
@@ -46,6 +96,7 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "onCreate: Starting settings menu");
         setupActionBar();
     }
 
@@ -56,7 +107,16 @@ public class SettingsActivity extends PreferenceActivity {
     private void setupActionBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             // Show the Up button in the action bar.
-            getActionBar().setDisplayHomeAsUpEnabled(true);
+            Log.i(TAG, "setupActionBar: 1");
+            try {
+                getActionBar().setDisplayHomeAsUpEnabled(true);  //will return null. Means we won't actually be able to use
+                //getSupportActionBar()  //TODO: apparently we're supposed to call this method if we're using the "android-support-v7-appcompat" library. Which apparently we are according to build.gradle (Module: app)   see: http://stackoverflow.com/questions/26755728/nullpointerexception-getting-actionbar-inside-activity
+            }
+            catch (NullPointerException e) {
+                Log.e(TAG, "null pointer exception "+e.getMessage());
+            }
+
+            Log.i(TAG, "setupActionBar: 2");
         }
     }
 

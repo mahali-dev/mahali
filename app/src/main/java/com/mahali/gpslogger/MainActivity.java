@@ -72,7 +72,6 @@ public class MainActivity extends ActionBarActivity {
         if (on) {
             // Handle toggle on
             Log.i(TAG,"Starting session.");
-
             startSession(view);
 
         } else {

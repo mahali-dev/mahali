@@ -23,6 +23,15 @@
                 android:resource="@xml/device_filter" />
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.mahali.gpslogger.MainActivity" />
+        </activity>
+
         <service
             android:name=".SerialLoopbackService"
             android:exported="false" >

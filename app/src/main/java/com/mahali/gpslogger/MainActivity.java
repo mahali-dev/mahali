@@ -9,12 +9,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -22,6 +27,7 @@ public class MainActivity extends ActionBarActivity {
 
     private final String TAG = MainActivity.class.getSimpleName();
     private UsbManager mUsbManager;
+    private ArrayList<GPSSession> sessionList = new ArrayList<GPSSession>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +35,47 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+
+        String threeStrings[] = {"hello","kitty","!"};
+
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, threeStrings);
+
+        sessionList.add(new GPSSession());
+        try {Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        sessionList.add(new GPSSession());
+        try {Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        sessionList.add(new GPSSession());
+        try {Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        sessionList.add(new GPSSession());
+        try {Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        sessionList.add(new GPSSession());
+        final ListView lv = (ListView) findViewById(R.id.sessionListView);
+        lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+                Object o = lv.getItemAtPosition(position);
+                GPSSession fullObject = (GPSSession)o;
+                Toast.makeText(MainActivity.this, "You have chosen: " + " " + fullObject.getFileName(), Toast.LENGTH_LONG).show();
+            }
+        });
 
     }
 

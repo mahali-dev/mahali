@@ -14,6 +14,7 @@
         android:background="#ffffffff"
         android:nestedScrollingEnabled="false"
         android:layout_below="@+id/toggleButtonCapture"
+        android:layout_marginTop="20dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
@@ -22,14 +23,14 @@
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/listView"
+        android:id="@+id/sessionListView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_alignEnd="@+id/textViewStatus"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/textViewStatus" />
+        android:layout_below="@+id/prevSessions" />
 
     <ToggleButton
         android:layout_width="wrap_content"
@@ -57,5 +58,29 @@
         android:layout_toStartOf="@+id/toggleButtonCapture"
         android:layout_alignBottom="@+id/toggleButtonCapture"
         android:gravity="right|fill_vertical" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/prevSessionLabel"
+        android:id="@+id/prevSessions"
+        android:gravity="right|fill_vertical"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/prevSessionLabel"
+        android:id="@+id/prevSessions"
+        android:gravity="right|fill_vertical"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

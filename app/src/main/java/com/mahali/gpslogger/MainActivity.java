@@ -2,6 +2,7 @@ package com.mahali.gpslogger;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -14,8 +15,12 @@ import android.widget.ToggleButton;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -34,35 +39,47 @@ public class MainActivity extends ActionBarActivity {
 
     public void startSession(View v) {
 
-        UsbSerialPort mUsbSerialPort;
-
-        // Handle button click
-        Log.i(TAG,"Probing for USB devices, then starting background service.");
-
-        // TODO: the probe process should probably be handled in an AsyncTask...see example project
+        // Probe for devices
         final List<UsbSerialDriver> drivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
 
-        Log.i(TAG,"Number of drivers: "+Integer.toString(drivers.size()));
+        // Get the first port of the first driver
+        // TODO: probably shouldn't be hard-coded, but multiple cables are unlikely
+        sPort = drivers.get(0).getPorts().get(0);
 
-        if (drivers.size()>0) {
-            // Get the first port of the first driver
-            mUsbSerialPort = drivers.get(0).getPorts().get(0);
-            Log.i(TAG, "Found device: " + mUsbSerialPort.getDriver().toString());
-
-            // Start the loopback service
-            Log.i(TAG, "Starting loopback service");
-            SerialLoopbackService.startActionLoop(this);
-        } else {
-            Log.i(TAG,"No devices/ports found.  Can't start loopback service.");
+        // Open a connection
+        UsbDeviceConnection connection = mUsbManager.openDevice(sPort.getDriver().getDevice());
+        if (connection == null) {
+            Log.e(TAG, "Error opening device");
+            return;
         }
 
+        try {
+            sPort.open(connection);
+            // TODO: port configuration should almost certainly be configuration
+            sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+        } catch (IOException e) {
+            Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
+            try {
+                sPort.close();
+            } catch (IOException e2) {
+                // Ignore.
+            }
+            sPort = null;
+            return;
+        }
+
+        // Start the IO manager thread
+        startIoManager();
     }
 
     public void stopSession(View v) {
+        stopIoManager();
 
-        // TODO: Code to stop session
+        // Block until mSerialIoManager has finished writing and has shutdown?
+        //mSerialIoManager.waitForStop();
 
+        // TODO: Close file?
     }
 
     public void onSessionToggleClicked(View view) {
@@ -77,8 +94,52 @@ public class MainActivity extends ActionBarActivity {
         } else {
             // Handle toggle off
             Log.i(TAG, "Stopping session.");
-
             stopSession(view);
+        }
+    }
+
+    /// Serial Port code
+    private static UsbSerialPort sPort = null;
+    private SerialInputOutputManager mSerialIoManager;
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    // SerialInputOutputManager.Listen is a subclass of Runnable (this makes it's own thread!)
+    private final SerialInputOutputManager.Listener mListener =
+            new SerialInputOutputManager.Listener() {
+                @Override
+                public void onRunError(Exception e) {
+                    Log.d(TAG, "Runner stopped.");
+                }
+                @Override
+                public void onNewData(final byte[] data) {
+                    // TODO: write data to file, or pass to thread that has the file handler?
+
+                    // Loopback the data to the serial port with a non-blocking write
+                    //mSerialIoManager.writeAsync(data);
+
+                    // Also push the bytes out to the log
+                    String decoded = new String(data);
+                    Log.d(TAG, '\n'+decoded+'\n');
+                }
+            };
+    private void stopIoManager() {
+        if (mSerialIoManager != null) {
+            Log.i(TAG, "Stopping io manager ..");
+            mSerialIoManager.stop();
+            mSerialIoManager = null;
+        }
+    }
+    private void startIoManager() {
+        if (sPort != null) {
+            Log.i(TAG, "Starting io manager ..");
+            mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+            mExecutor.submit(mSerialIoManager);
+
+            // TODO: send actual GPS configuration string.
+            // NOTE: writeAsync writes into a smallish buffer that we may want to make bigger,
+            // otherwise an exception will be thrown.
+            String msg = "unlogall\r\nlog,com1,version,ontime,5\r\n"; // causes GPS to spit out its version string every five seconds
+            mSerialIoManager.writeAsync(msg.getBytes());
         }
     }
 

@@ -111,6 +111,17 @@ public class SerialInputOutputManager implements Runnable {
         }
     }
 
+    public synchronized void waitForStop() {
+        while (getState()!=State.STOPPED) {
+            try {
+                Thread.sleep(1000);                 //1000 milliseconds is one second.
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            Log.i(TAG,"waitForStop() loop");
+        }
+    }
+
     private synchronized State getState() {
         return mState;
     }

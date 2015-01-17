@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ToggleButton;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -30,7 +31,7 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    public void probeUsb(View v) {
+    public void startSession(View v) {
 
         UsbSerialPort mUsbSerialPort;
 
@@ -55,6 +56,30 @@ public class MainActivity extends ActionBarActivity {
             Log.i(TAG,"No devices/ports found.  Can't start loopback service.");
         }
 
+    }
+
+    public void stopSession(View v) {
+
+        // TODO: Code to stop session
+
+    }
+
+    public void onSessionToggleClicked(View view) {
+        // Is the toggle on?
+        boolean on = ((ToggleButton) view).isChecked();
+
+        if (on) {
+            // Handle toggle on
+            Log.i(TAG,"Starting session.");
+
+            startSession(view);
+
+        } else {
+            // Handle toggle off
+            Log.i(TAG, "Stopping session.");
+
+            stopSession(view);
+        }
     }
 
     @Override

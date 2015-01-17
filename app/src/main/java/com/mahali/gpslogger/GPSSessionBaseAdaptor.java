@@ -44,7 +44,6 @@ public class GPSSessionBaseAdaptor extends BaseAdapter {
             convertView = mInflater.inflate(R.layout.session_row_view, null);
             holder = new ViewHolder();
             holder.txtSessionName = (TextView) convertView.findViewById(R.id.sessionName);
-            holder.txtSessionDate = (TextView) convertView.findViewById(R.id.sessionDate);
             holder.txtSessionSize = (TextView) convertView.findViewById(R.id.sessionSize);
 
             convertView.setTag(holder);
@@ -53,7 +52,6 @@ public class GPSSessionBaseAdaptor extends BaseAdapter {
         }
 
         holder.txtSessionName.setText(sessionList.get(position).getFileName());
-        holder.txtSessionDate.setText(sessionList.get(position).getReadableDate());
         holder.txtSessionSize.setText(""+sessionList.get(position).getSize());
 
         return convertView;
@@ -61,7 +59,6 @@ public class GPSSessionBaseAdaptor extends BaseAdapter {
 
     static class ViewHolder {
         TextView txtSessionName;
-        TextView txtSessionDate;
         TextView txtSessionSize;
     }
 }

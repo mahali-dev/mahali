@@ -1,6 +1,7 @@
 package com.mahali.gpslogger;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ToggleButton;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -30,7 +32,7 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    public void probeUsb(View v) {
+    public void startSession(View v) {
 
         UsbSerialPort mUsbSerialPort;
 
@@ -57,6 +59,30 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    public void stopSession(View v) {
+
+        // TODO: Code to stop session
+
+    }
+
+    public void onSessionToggleClicked(View view) {
+        // Is the toggle on?
+        boolean on = ((ToggleButton) view).isChecked();
+
+        if (on) {
+            // Handle toggle on
+            Log.i(TAG,"Starting session.");
+
+            startSession(view);
+
+        } else {
+            // Handle toggle off
+            Log.i(TAG, "Stopping session.");
+
+            stopSession(view);
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -73,6 +99,8 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
             return true;
         }
 

@@ -119,11 +119,9 @@ public class MainActivity extends ActionBarActivity {
         }
 
         Log.i(TAG, "Directory loaded: "+dirFile.exists());
-
-        sessionList = loadGPSSessions();
-
         final ListView lv = (ListView) findViewById(R.id.sessionListView);
-        lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
+
+        updateSessionListView();
 
         // this method handles the selection of sessions from the list
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -146,10 +144,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void updateSessionListView() {
-        sessionList = loadGPSSessions();
-        // TODO: display meaningful message in ListView when there are no sessions found
-
         final ListView lv = (ListView) findViewById(R.id.sessionListView);
+
+        sessionList = loadGPSSessions();
+
         lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
     }
 
@@ -231,8 +229,6 @@ public class MainActivity extends ActionBarActivity {
             Log.e(TAG, "stopSession failed to flush or close file" + e.getMessage());
         }
 
-
-        // TODO: Probably want to call lv.setAdapter(...) again, to update the list. See code in onCreate. Will have to create a new GPSSession object
         updateSessionListView();
     }
 
@@ -398,7 +394,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void deleteFile() {
-        // TODO: write code for file deletion. Note that we'll have to call lv.setAdapter(...) again, to update the list
+        // TODO: write code for file deletion. Note that we'll have to call updateSessionListView() again, to update the list
     }
 
     // Send file to DropBox

@@ -21,6 +21,8 @@ public class GPSSessionBaseAdaptor extends BaseAdapter {
     private LayoutInflater mInflater;
 
     public GPSSessionBaseAdaptor(Context context, ArrayList<GPSSession> sessionList) {
+        // TODO: display meaningful message in ListView when there are no sessions found
+
         this.sessionList = sessionList;
         mInflater = LayoutInflater.from(context);
     }

@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 public class GPSSession {
     private final String TAG = GPSSession.class.getSimpleName();
 
+    private String absolutePath;
     private String fileName;
     private long size;
 
@@ -33,15 +34,20 @@ public class GPSSession {
         size = 0;
     }
 
-    public GPSSession(String fileName,long size) {
+    public GPSSession(String fileName,String absolutePath, long size) {
         Log.i(TAG,"New GPSSession created with file name");
 
         this.fileName = fileName;
+        this.absolutePath = absolutePath;
         this.size = size;
     }
 
     public String getFileName() {
         return fileName;
+    }
+
+    public String getAbsolutePath() {
+        return absolutePath;
     }
 
     public long getSize() {return size;}

@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mahali.gpslogger" >
 
+    <!--The below line enables writing to external storage, per http://developer.android.com/training/basics/data-storage/files.html-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!--Required for DropBox access  https://www.dropbox.com/developers/core/sdks/android-->
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -30,6 +36,20 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.mahali.gpslogger.MainActivity" />
+        </activity>
+
+        <!--For DropBox configuration https://www.dropbox.com/developers/core/sdks/android -->
+        <activity
+            android:name="com.dropbox.client2.android.AuthActivity"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|keyboard">
+            <intent-filter>
+                <!-- The key below,i.e. 2wmhe173wllfuwz, was obtained from the app console on dropbox website -->
+                <data android:scheme="db-2wmhe173wllfuwz" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <service

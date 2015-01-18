@@ -7,6 +7,7 @@
     <string name="sessionToggleOn">Running</string>
     <string name="sessionToggleOff">Stopped</string>
     <string name="toggleLabel">Session control:</string>
+    <string name="prevSessionLabel">Previous Sessions:</string>
 
 
 </resources>

@@ -162,6 +162,8 @@ public class MainActivity extends ActionBarActivity {
 
         // TODO: Code to stop session
 
+        // TODO: Probably want to call lv.setAdapter(...) again, to update the list. See code in onCreate. Will have to create a new GPSSession object
+
     }
 
     public void onSessionToggleClicked(View view) {

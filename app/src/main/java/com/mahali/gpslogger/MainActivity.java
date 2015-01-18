@@ -32,11 +32,14 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,9 +55,12 @@ public class MainActivity extends ActionBarActivity {
 
     // The directory for the user's public documents directory.
     File dirFile;
+    File sessFile;
+    BufferedOutputStream bufOS = null;
 
     //for holding a reference to the file that we're currently reading from/writing to
 //    private File currentFile = null;
+    GPSSession mCurrentSession = null;
 
     // List of the previous sessions found by the app
     private ArrayList<GPSSession> sessionList = null;
@@ -105,6 +111,8 @@ public class MainActivity extends ActionBarActivity {
 
         // ------------------------------------------------
 
+        // TODO: make sure external storage is mounted/available see info here:
+        // http://developer.android.com/training/basics/data-storage/files.html#WriteExternalStorage
         dirFile = new File(Environment.getExternalStorageDirectory(),mahali_directory);
         if (!dirFile.mkdirs()) {
             Log.i(TAG, "Directory not created - it already exists!");
@@ -137,7 +145,16 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    public void startSession(View v) {
+    private void updateSessionListView() {
+        sessionList = loadGPSSessions();
+        // TODO: display meaningful message in ListView when there are no sessions found
+
+        final ListView lv = (ListView) findViewById(R.id.sessionListView);
+        lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
+    }
+
+    public void startSession(View v) throws IOException {
+        // Throws IOException when something goes wrong
 
         // Probe for devices
         final List<UsbSerialDriver> drivers =
@@ -145,13 +162,18 @@ public class MainActivity extends ActionBarActivity {
 
         // Get the first port of the first driver
         // TODO: probably shouldn't be hard-coded, but multiple cables are unlikely
-        sPort = drivers.get(0).getPorts().get(0);
+        try {
+            sPort = drivers.get(0).getPorts().get(0);
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(TAG,"Serial port not available");
+            throw new IOException("Serial port not available");
+        }
 
         // Open a connection
         UsbDeviceConnection connection = mUsbManager.openDevice(sPort.getDriver().getDevice());
         if (connection == null) {
-            Log.e(TAG, "Error opening device");
-            return;
+            Log.e(TAG, "Error opening USB device");
+            throw new IOException("Error opening USB device");
         }
 
         try {
@@ -166,7 +188,30 @@ public class MainActivity extends ActionBarActivity {
                 // Ignore.
             }
             sPort = null;
-            return;
+            throw new IOException("Error configuring USB device:" + e.getMessage());
+        }
+
+        Log.i(TAG,"startSession: creating new GPS session");
+        mCurrentSession = new GPSSession();
+        sessFile = new File(dirFile.getPath(),mCurrentSession.getFileName());
+        if (sessFile.exists()) {
+            Log.e(TAG,"Session file already exists!");
+            throw new IOException("Session file already exists: " + mCurrentSession.getFileName());
+        }
+        // Create file
+        try {
+            boolean fileCreated = sessFile.createNewFile();
+            Log.i(TAG, "fileCreated: " + fileCreated);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to create new file: " + e.getMessage());
+            throw new IOException("Failed to create new file: " + e.getMessage());
+        }
+        // Create output buffer
+        try {
+            bufOS = new BufferedOutputStream(new FileOutputStream(sessFile));
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "File not found exception: " + e.getMessage());
+            throw new IOException("File not found exception during buffer creation");
         }
 
         // Start the IO manager thread
@@ -179,8 +224,16 @@ public class MainActivity extends ActionBarActivity {
         // Block until mSerialIoManager has finished writing and has shutdown?
         //mSerialIoManager.waitForStop();
 
-        // TODO: Close file?
+        try {
+            bufOS.flush();
+            bufOS.close();
+        } catch (IOException e) {
+            Log.e(TAG, "stopSession failed to flush or close file" + e.getMessage());
+        }
+
+
         // TODO: Probably want to call lv.setAdapter(...) again, to update the list. See code in onCreate. Will have to create a new GPSSession object
+        updateSessionListView();
     }
 
     public void onSessionToggleClicked(View view) {
@@ -190,7 +243,13 @@ public class MainActivity extends ActionBarActivity {
         if (on) {
             // Handle toggle on
             Log.i(TAG,"Starting session.");
-            startSession(view);
+            try {
+                startSession(view);
+            } catch (IOException e) {
+                // Failed to start session
+                Toast.makeText(this, e.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                ((ToggleButton) view).setChecked(false);
+            }
 
         } else {
             // Handle toggle off
@@ -213,10 +272,12 @@ public class MainActivity extends ActionBarActivity {
                 }
                 @Override
                 public void onNewData(final byte[] data) {
-                    // TODO: write data to file, or pass to thread that has the file handler?
-
-                    // Loopback the data to the serial port with a non-blocking write
-                    //mSerialIoManager.writeAsync(data);
+                    // Write data to session file
+                    try {
+                        bufOS.write(data);
+                    } catch (IOException e) {
+                        Log.e(TAG, "mListener failed to write data to output buffer" + e.getMessage());
+                    }
 
                     // Also push the bytes out to the log
                     String decoded = new String(data);
@@ -329,6 +390,9 @@ public class MainActivity extends ActionBarActivity {
                 }
             }
         }
+
+        // Reverse order so most recent session is at top of list
+        Collections.reverse(sessions);
 
         return sessions;
     }

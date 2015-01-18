@@ -136,7 +136,7 @@ public class MainActivity extends ActionBarActivity {
                 // Try to upload the file to dropbox for the time being
                 sendToDB(fullObject.getAbsolutePath());
 
-                // Stub for deleting the file
+                // Stub for deleting the file (only if upload successful?)
                 deleteFile();
             }
         });

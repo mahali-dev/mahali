@@ -51,7 +51,7 @@ public class MainActivity extends ActionBarActivity {
     private UsbManager mUsbManager;
 
     // The directory, in external storage, where mahali files will be stored
-    private final String mahali_directory = "new_files";
+    private final String mahali_directory = "mahali";
 
     // The directory for the user's public documents directory.
     File dirFile;

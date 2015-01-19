@@ -30,7 +30,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignEnd="@+id/textViewStatus"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/prevSessions" />
+        android:layout_below="@+id/prevSessions"
+        android:dividerHeight="5dp" />
 
     <ToggleButton
         android:layout_width="wrap_content"
@@ -71,16 +72,5 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/prevSessionLabel"
-        android:id="@+id/prevSessions"
-        android:gravity="right|fill_vertical"
-        android:layout_below="@+id/textViewStatus"
-        android:layout_marginTop="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

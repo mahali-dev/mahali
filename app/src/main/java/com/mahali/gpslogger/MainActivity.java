@@ -74,17 +74,13 @@ public class MainActivity extends ActionBarActivity {
     private static final String GPS_CONFIG_NORMAL = "\r\nunlogall\r\n" +
             "log,com1,versiona,once\r\n" +
             "ecutoff,10\r\n" +
-            "externalclock,OCXO,10MHz\r\n" +
+            "externalclock,disable\r\n" +
             "clockadjust,disable\r\n" +
             "SinBandWidth,0.1,0.0\r\n" +
             "SinTECCalibration,0\r\n" +
             "CPOFFSET,-0.0321,-0.3186,0.0447,0.4605,-0.267,0.1788,-0.1854,-0.1539,0.096,-0.4974,0.2265,0,0.4677,0.1281,-0.2841,-0.0855,-0.2574,0.0255,0,-0.3057,-0.0801,-0.4266,-0.2235,0.1035,0.1833,0.3966,0.0015,-0.0288,0.2868,0.6195,-0.0732,0\r\n" +
             "log,com1,satvisb,ontime,15.0\r\n" +
-            "log,com1,waas18b,onchanged\r\n" +
-            "log,com1,waas26b,onchanged\r\n" +
-            "log,com1,bestposb,ontime,1.0\r\n" +
             "log,com1,rangeb,ontime,1.0\r\n" +
-            "log,com1,rawsinb,ontime,1.0\r\n" +
             "log,com1,ismrb,onnew\r\n" +
             "log,com1,gpsephemb,onchanged\r\n" +
             "log,com1,ionutcb,onchanged\r\n";
@@ -294,8 +290,8 @@ public class MainActivity extends ActionBarActivity {
                     }
 
                     // Also push the bytes out to the log
-                    String decoded = new String(data);
-                    Log.d(TAG, '\n'+decoded+'\n');
+                    //String decoded = new String(data);
+                    //Log.d(TAG, '\n'+decoded+'\n');
                 }
             };
     private void stopIoManager() {

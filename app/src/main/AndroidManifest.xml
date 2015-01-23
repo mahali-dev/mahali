@@ -29,15 +29,6 @@
                 android:resource="@xml/device_filter" />
         </activity>
 
-        <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.mahali.gpslogger.MainActivity" />
-        </activity>
-
         <!--For DropBox configuration https://www.dropbox.com/developers/core/sdks/android -->
         <activity
             android:name="com.dropbox.client2.android.AuthActivity"

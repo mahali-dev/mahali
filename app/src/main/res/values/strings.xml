@@ -8,6 +8,10 @@
     <string name="sessionToggleOff">Stopped</string>
     <string name="toggleLabel">Session control:</string>
     <string name="prevSessionLabel">Previous Sessions:</string>
-
+    <string name="title_activity_config">ConfigActivity</string>
+    <string name="hello_world">GPS Configuration:</string>
+    <string name="button_load">Load fom external</string>
+    <string name="button_save">Save</string>
+    <string name="button_cancel">Cancel</string>
 
 </resources>

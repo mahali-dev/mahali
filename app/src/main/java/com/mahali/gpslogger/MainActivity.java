@@ -246,6 +246,13 @@ public class MainActivity extends ActionBarActivity {
         updateSessionListView();
     }
 
+    public void onConfigButtonClicked(View view) {
+
+        Intent intent = new Intent(this, ConfigActivity.class);
+        startActivity(intent);
+
+    }
+
     public void onSessionToggleClicked(View view) {
         // Is the toggle on?
         boolean on = ((ToggleButton) view).isChecked();

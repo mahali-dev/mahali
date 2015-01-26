@@ -14,9 +14,8 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
+        android:inputType="textNoSuggestions|textMultiLine"
         android:id="@+id/editTextConfig"
-        android:text="Config goes here"
         android:gravity="left|top"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="false"

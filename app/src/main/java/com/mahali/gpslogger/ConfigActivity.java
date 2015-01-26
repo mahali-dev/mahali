@@ -49,7 +49,6 @@ public class ConfigActivity extends ActionBarActivity {
         // Restore preferences
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
-        Log.i(TAG,"read config from shared prefs:\n"+curConfig+"\n");
         EditText t = (EditText) findViewById(R.id.editTextConfig);
         t.setText(curConfig);
     }

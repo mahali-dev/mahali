@@ -20,30 +20,38 @@ public class ConfigActivity extends ActionBarActivity {
     private final String TAG = ConfigActivity.class.getSimpleName();
 
     public static final String PREFS_NAME = "MyPrefsFile";
-    public static final String DEFAULT_GPS_CONFIG = "This is the default config.";
+    public static final String DEFAULT_GPS_CONFIG = "unlogall\r\n"+
+            "log,com1,versiona,once\r\n"+
+            "ecutoff,10\r\n"+
+            "externalclock,OCXO,10MHz\r\n"+
+            "clockadjust,disable\r\n"+
+            "SinBandWidth,0.1,0.0\r\n"+
+            "SinTECCalibration,0\r\n"+
+            "CPOFFSET,-0.0321,-0.3186,0.0447,0.4605,-0.267,0.1788,-0.1854,-0.1539,0.096,-0.4974,0.2265,0,0.4677,0.1281,-0.2841,-0.0855,-0.2574,0.0255,0,-0.3057,-0.0801,-0.4266,-0.2235,0.1035,0.1833,0.3966,0.0015,-0.0288,0.2868,0.6195,-0.0732,0\r\n"+
+            "log,com1,satvisb,ontime,15.0\r\n"+
+            "log,com1,waas18b,onchanged\r\n"+
+            "log,com1,waas26b,onchanged\r\n"+
+            "log,com1,bestposb,ontime,1.0\r\n"+
+            "log,com1,rangeb,ontime,1.0\r\n"+
+            "log,com1,rawsinb,ontime,1.0\r\n"+
+            "log,com1,ismrb,onnew\r\n"+
+            "log,com1,gpsephemb,onchanged\r\n"+
+            "log,com1,ionutcb,onchanged\r\n";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_config);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
-        }
-    }
 
-/*    @Override
-    protected void onResume() {
         // Restore preferences
-        // TODO: this is probably not where I should be doing this
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
         Log.i(TAG,"read config from shared prefs:\n"+curConfig+"\n");
         EditText t = (EditText) findViewById(R.id.editTextConfig);
         t.setText(curConfig);
-    }*/
-
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -60,27 +68,17 @@ public class ConfigActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_restoreDefaultConfig) {
+            Log.i(TAG, "Restoring default GPS config");
+            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("gpsConfig",DEFAULT_GPS_CONFIG);
+            editor.commit();
+
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_config, container, false);
-            return rootView;
-        }
     }
 
     public void onSaveButtonClicked(View view) {

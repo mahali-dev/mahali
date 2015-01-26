@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
 import android.widget.EditText;
+import android.widget.Toast;
 
 
 public class ConfigActivity extends ActionBarActivity {
@@ -75,6 +76,9 @@ public class ConfigActivity extends ActionBarActivity {
             editor.putString("gpsConfig",DEFAULT_GPS_CONFIG);
             editor.commit();
 
+            reloadConfig();
+
+            Toast.makeText(ConfigActivity.this, "GPS config restored to app default.", Toast.LENGTH_LONG).show();
             return true;
         }
 
@@ -91,6 +95,9 @@ public class ConfigActivity extends ActionBarActivity {
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("gpsConfig",t.getText().toString());
         editor.commit();
+
+        Toast.makeText(ConfigActivity.this, "GPS config saved", Toast.LENGTH_LONG).show();
+
     }
 
     public void onLoadButtonClicked(View view) {
@@ -108,6 +115,16 @@ public class ConfigActivity extends ActionBarActivity {
         EditText t = (EditText) findViewById(R.id.editTextConfig);
         t.setText(curConfig);
 
+        Toast.makeText(ConfigActivity.this, "GPS config reverted from saved preferences", Toast.LENGTH_LONG).show();
+    }
+
+    public void reloadConfig() {
+        // Revert to previous config
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
+
+        EditText t = (EditText) findViewById(R.id.editTextConfig);
+        t.setText(curConfig);
     }
 
 }

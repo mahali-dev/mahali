@@ -16,31 +16,29 @@
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
         android:id="@+id/editTextConfig"
-        android:layout_below="@+id/textView"
         android:text="Config goes here"
         android:gravity="left|top"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentEnd="false"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_alignParentStart="false"
         android:background="#d0ffffff"
         android:typeface="monospace"
-        android:layout_above="@+id/buttonGrid"
         style="@style/Base.Widget.AppCompat.EditText"
-        android:nestedScrollingEnabled="false" />
+        android:nestedScrollingEnabled="false"
+        android:layout_below="@+id/textView"
+        android:layout_above="@+id/linearLayout" />
 
-    <GridLayout
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:columnCount="3"
-        android:rowCount="1"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:useDefaultMargins="true"
-        android:id="@+id/buttonGrid">
+        android:id="@+id/linearLayout"
+        android:gravity="center_horizontal">
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -48,9 +46,6 @@
             android:layout_height="wrap_content"
             android:text="@string/button_save"
             android:id="@+id/buttonSave"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:onClick="onSaveButtonClicked" />
 
         <Button
@@ -59,9 +54,6 @@
             android:layout_height="wrap_content"
             android:text="@string/button_load"
             android:id="@+id/buttonLoad"
-            android:layout_alignParentBottom="true"
-            android:layout_toRightOf="@+id/textView"
-            android:layout_toEndOf="@+id/textView"
             android:onClick="onLoadButtonClicked"
             android:enabled="false" />
 
@@ -71,10 +63,7 @@
             android:layout_height="wrap_content"
             android:text="@string/button_cancel"
             android:id="@+id/buttonCancel"
-            android:layout_alignTop="@+id/buttonLoad"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
             android:onClick="onCancelButtonClicked" />
-    </GridLayout>
+    </LinearLayout>
 
 </RelativeLayout>

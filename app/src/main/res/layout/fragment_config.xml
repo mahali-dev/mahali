@@ -50,7 +50,8 @@
             android:id="@+id/buttonSave"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:onClick="onSaveButtonClicked" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -60,7 +61,9 @@
             android:id="@+id/buttonLoad"
             android:layout_alignParentBottom="true"
             android:layout_toRightOf="@+id/textView"
-            android:layout_toEndOf="@+id/textView" />
+            android:layout_toEndOf="@+id/textView"
+            android:onClick="onLoadButtonClicked"
+            android:enabled="false" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -70,7 +73,8 @@
             android:id="@+id/buttonCancel"
             android:layout_alignTop="@+id/buttonLoad"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            android:layout_alignParentEnd="true"
+            android:onClick="onCancelButtonClicked" />
     </GridLayout>
 
 </RelativeLayout>

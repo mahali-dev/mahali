@@ -1,18 +1,26 @@
 package com.mahali.gpslogger;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+import android.widget.EditText;
 
 
 public class ConfigActivity extends ActionBarActivity {
+
+    private final String TAG = ConfigActivity.class.getSimpleName();
+
+    public static final String PREFS_NAME = "MyPrefsFile";
+    public static final String DEFAULT_GPS_CONFIG = "This is the default config.";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +32,17 @@ public class ConfigActivity extends ActionBarActivity {
                     .commit();
         }
     }
+
+/*    @Override
+    protected void onResume() {
+        // Restore preferences
+        // TODO: this is probably not where I should be doing this
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
+        Log.i(TAG,"read config from shared prefs:\n"+curConfig+"\n");
+        EditText t = (EditText) findViewById(R.id.editTextConfig);
+        t.setText(curConfig);
+    }*/
 
 
     @Override
@@ -63,4 +82,34 @@ public class ConfigActivity extends ActionBarActivity {
             return rootView;
         }
     }
+
+    public void onSaveButtonClicked(View view) {
+        // Save GPS config to SharedPreferences?
+        Log.i(TAG,"Save button clicked");
+
+        EditText t = (EditText) findViewById(R.id.editTextConfig);
+
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("gpsConfig",t.getText().toString());
+        editor.commit();
+    }
+
+    public void onLoadButtonClicked(View view) {
+        // Load from external (e.g. Dropbox)
+        Log.i(TAG,"Load button clicked");
+
+    }
+    public void onCancelButtonClicked(View view) {
+        Log.i(TAG,"Cancel button clicked");
+
+        // Revert to previous config
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
+
+        EditText t = (EditText) findViewById(R.id.editTextConfig);
+        t.setText(curConfig);
+
+    }
+
 }

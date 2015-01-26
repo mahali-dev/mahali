@@ -70,20 +70,7 @@ public class MainActivity extends ActionBarActivity {
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.APP_FOLDER;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
-    private static final String GPS_CONFIG_SIMPLE = "unlogall\r\nlog,com1,version,ontime,5\r\n";
-    private static final String GPS_CONFIG_NORMAL = "\r\nunlogall\r\n" +
-            "log,com1,versiona,once\r\n" +
-            "ecutoff,10\r\n" +
-            "externalclock,disable\r\n" +
-            "clockadjust,disable\r\n" +
-            "SinBandWidth,0.1,0.0\r\n" +
-            "SinTECCalibration,0\r\n" +
-            "CPOFFSET,-0.0321,-0.3186,0.0447,0.4605,-0.267,0.1788,-0.1854,-0.1539,0.096,-0.4974,0.2265,0,0.4677,0.1281,-0.2841,-0.0855,-0.2574,0.0255,0,-0.3057,-0.0801,-0.4266,-0.2235,0.1035,0.1833,0.3966,0.0015,-0.0288,0.2868,0.6195,-0.0732,0\r\n" +
-            "log,com1,satvisb,ontime,15.0\r\n" +
-            "log,com1,rangeb,ontime,1.0\r\n" +
-            "log,com1,ismrb,onnew\r\n" +
-            "log,com1,gpsephemb,onchanged\r\n" +
-            "log,com1,ionutcb,onchanged\r\n";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -314,11 +301,14 @@ public class MainActivity extends ActionBarActivity {
             mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
             mExecutor.submit(mSerialIoManager);
 
-            // TODO: send actual GPS configuration string.
+            SharedPreferences settings = getSharedPreferences(ConfigActivity.PREFS_NAME, 0);
+            String curConfig = settings.getString("gpsConfig", ConfigActivity.DEFAULT_GPS_CONFIG);
+            // TODO: do we need to add CR+LF chars here for the Novatel?
+            Log.i(TAG,"Sending to GPS"+curConfig);
+
             // NOTE: writeAsync writes into a smallish buffer that we may want to make bigger,
             // otherwise an exception will be thrown.
-            String msg = GPS_CONFIG_NORMAL; // causes GPS to spit out its version string every five seconds
-            mSerialIoManager.writeAsync(msg.getBytes());
+            mSerialIoManager.writeAsync(curConfig.getBytes());
         }
     }
 

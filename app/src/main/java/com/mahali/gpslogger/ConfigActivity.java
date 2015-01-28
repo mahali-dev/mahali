@@ -24,7 +24,7 @@ public class ConfigActivity extends ActionBarActivity {
     public static final String DEFAULT_GPS_CONFIG = "unlogall\r\n"+
             "log,com1,versiona,once\r\n"+
             "ecutoff,10\r\n"+
-            "externalclock,OCXO,10MHz\r\n"+
+            "externalclock,disable\r\n"+
             "clockadjust,disable\r\n"+
             "SinBandWidth,0.1,0.0\r\n"+
             "SinTECCalibration,0\r\n"+
@@ -34,7 +34,6 @@ public class ConfigActivity extends ActionBarActivity {
             "log,com1,waas26b,onchanged\r\n"+
             "log,com1,bestposb,ontime,1.0\r\n"+
             "log,com1,rangeb,ontime,1.0\r\n"+
-            "log,com1,rawsinb,ontime,1.0\r\n"+
             "log,com1,ismrb,onnew\r\n"+
             "log,com1,gpsephemb,onchanged\r\n"+
             "log,com1,ionutcb,onchanged\r\n";

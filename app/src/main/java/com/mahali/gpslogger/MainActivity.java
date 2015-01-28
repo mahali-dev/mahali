@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.hardware.usb.UsbDeviceConnection;
 import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -171,10 +172,16 @@ public class MainActivity extends ActionBarActivity {
         GPSSession clickedSession = sessionList.get(info.position);
         Log.v(TAG,String.format("Selected %s for item %s", menuItemName, listItemName));
 
+        // Share session
+        if (menuItemIndex==0) {
+            Log.v(TAG,"Sharing session "+clickedSession.getFileName());
+            shareSession(clickedSession);
+        }
 
+        // Delete session
         if (menuItemIndex==1) {
             Log.v(TAG,"Deleting session "+clickedSession.getFileName());
-            deleteFile(clickedSession);
+            deleteSession(clickedSession);
         }
 
         return true;
@@ -464,7 +471,17 @@ public class MainActivity extends ActionBarActivity {
         return sessions;
     }
 
-    private void deleteFile(GPSSession sess) {
+    private void shareSession(GPSSession sess) {
+        File mSessFile = new File(dirFile.getPath(),sess.getFileName());
+
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(mSessFile));
+        sendIntent.setType("application/octet-stream"); // This seems to be a good MIME type for raw binary data
+        startActivity(sendIntent);
+    }
+
+    private void deleteSession(GPSSession sess) {
         // TODO: write code for file deletion. Note that we'll have to call updateSessionListView() again, to update the list
         File mSessFile = new File(dirFile.getPath(),sess.getFileName());
         Log.v(TAG,"deteleting "+mSessFile.getAbsolutePath());

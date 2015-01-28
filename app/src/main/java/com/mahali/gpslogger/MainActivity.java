@@ -302,7 +302,9 @@ public class MainActivity extends ActionBarActivity {
             mExecutor.submit(mSerialIoManager);
 
             SharedPreferences settings = getSharedPreferences(ConfigActivity.PREFS_NAME, 0);
-            String curConfig = settings.getString("gpsConfig", ConfigActivity.DEFAULT_GPS_CONFIG);
+            String curConfig = "\r\n"+
+                    settings.getString("gpsConfig", ConfigActivity.DEFAULT_GPS_CONFIG)+
+                    "\r\n";
             Log.i(TAG,"Sending to GPS"+curConfig);
 
             // NOTE: writeAsync writes into a smallish buffer that we may want to make bigger,

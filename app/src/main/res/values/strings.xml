@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">MahaliSerialTest</string>
+    <string name="app_name">Mahali GPS Logger</string>
     <string name="step1">Click to enumerate USB serial adapters</string>
     <string name="action_settings">Settings</string>
+    <string name="action_restoreDefault">Restore default GPS config</string>
     <string name="sessionToggleOn">Running</string>
     <string name="sessionToggleOff">Stopped</string>
     <string name="toggleLabel">Session control:</string>
     <string name="prevSessionLabel">Previous Sessions:</string>
-
+    <string name="title_activity_config">Edit GPS Configuration</string>
+    <string name="hello_world">GPS Configuration:</string>
+    <string name="button_load">Load fom external</string>
+    <string name="button_save">Save</string>
+    <string name="button_cancel">Revert</string>
 
 </resources>

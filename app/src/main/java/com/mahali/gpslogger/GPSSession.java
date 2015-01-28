@@ -35,8 +35,6 @@ public class GPSSession {
     }
 
     public GPSSession(String fileName,String absolutePath, long size) {
-        Log.i(TAG,"New GPSSession created with file name");
-
         this.fileName = fileName;
         this.absolutePath = absolutePath;
         this.size = size;

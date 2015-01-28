@@ -13,6 +13,6 @@
     <string name="hello_world">GPS Configuration:</string>
     <string name="button_load">Load fom external</string>
     <string name="button_save">Save</string>
-    <string name="button_cancel">Revert</string>
+    <string name="button_cancel">Cancel</string>
 
 </resources>

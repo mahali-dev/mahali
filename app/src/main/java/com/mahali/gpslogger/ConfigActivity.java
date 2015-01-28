@@ -94,7 +94,7 @@ public class ConfigActivity extends ActionBarActivity {
         editor.putString("gpsConfig",t.getText().toString());
         editor.commit();
 
-        Toast.makeText(ConfigActivity.this, "GPS config saved", Toast.LENGTH_LONG).show();
+        Toast.makeText(ConfigActivity.this, "GPS config saved", Toast.LENGTH_SHORT).show();
 
     }
 
@@ -106,14 +106,7 @@ public class ConfigActivity extends ActionBarActivity {
     public void onCancelButtonClicked(View view) {
         Log.i(TAG,"Cancel button clicked");
 
-        // Revert to previous config
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
-
-        EditText t = (EditText) findViewById(R.id.editTextConfig);
-        t.setText(curConfig);
-
-        Toast.makeText(ConfigActivity.this, "GPS config reverted from saved preferences", Toast.LENGTH_LONG).show();
+        this.finish();
     }
 
     public void reloadConfig() {

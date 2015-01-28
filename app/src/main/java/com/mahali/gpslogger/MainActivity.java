@@ -321,7 +321,7 @@ public class MainActivity extends ActionBarActivity {
             final Integer rxBytes = (Integer) msg.what;
             final String s = NumberFormat.getIntegerInstance().format(rxBytes);
             final TextView tv = (TextView) findViewById(R.id.textViewStatus);
-            tv.setText("Bytes received: "+s);
+            tv.setText("Name: "+mCurrentSession.getFileName()+"\nBytes received: "+s);
         }
     };
 
@@ -343,7 +343,7 @@ public class MainActivity extends ActionBarActivity {
 
                     serialStatsRxBytes += data.length;
 
-                    mHandler.sendEmptyMessage(serialStatsRxBytes);
+                    //mHandler.sendEmptyMessage(serialStatsRxBytes);
 
                     // Also push the bytes out to the log
                     //String decoded = new String(data);

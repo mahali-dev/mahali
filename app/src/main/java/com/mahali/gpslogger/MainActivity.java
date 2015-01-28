@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -140,12 +141,43 @@ public class MainActivity extends ActionBarActivity {
 
                 // Try to upload the file to dropbox for the time being
                 sendToDB(fullObject.getAbsolutePath());
-
-                // Stub for deleting the file (only if upload successful?)
-                deleteFile();
             }
         });
 
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId()==R.id.sessionListView) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+
+            menu.setHeaderTitle(sessionList.get(info.position).getFileName());
+            String[] menuItems = getResources().getStringArray(R.array.sessionLongMenu);
+            for (int i = 0; i<menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        int menuItemIndex = item.getItemId();
+        String[] menuItems = getResources().getStringArray(R.array.sessionLongMenu);
+        String menuItemName = menuItems[menuItemIndex];
+        String listItemName = sessionList.get(info.position).getFileName();
+
+        GPSSession clickedSession = sessionList.get(info.position);
+        Log.v(TAG,String.format("Selected %s for item %s", menuItemName, listItemName));
+
+
+        if (menuItemIndex==1) {
+            Log.v(TAG,"Deleting session "+clickedSession.getFileName());
+            deleteFile(clickedSession);
+        }
+
+        return true;
     }
 
     private void updateSessionListView() {
@@ -154,6 +186,7 @@ public class MainActivity extends ActionBarActivity {
         sessionList = loadGPSSessions();
 
         lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
+        registerForContextMenu(lv);
     }
 
     public void startSession(View v) throws IOException {
@@ -431,8 +464,12 @@ public class MainActivity extends ActionBarActivity {
         return sessions;
     }
 
-    private void deleteFile() {
+    private void deleteFile(GPSSession sess) {
         // TODO: write code for file deletion. Note that we'll have to call updateSessionListView() again, to update the list
+        File mSessFile = new File(dirFile.getPath(),sess.getFileName());
+        Log.v(TAG,"deteleting "+mSessFile.getAbsolutePath());
+        boolean deleted = mSessFile.delete();
+        updateSessionListView();
     }
 
     // Send file to DropBox

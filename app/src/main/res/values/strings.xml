@@ -15,4 +15,9 @@
     <string name="button_save">Save</string>
     <string name="button_cancel">Cancel</string>
 
+    <string-array name="sessionLongMenu">
+        <item>Share</item>
+        <item>Delete</item>
+    </string-array>
+
 </resources>

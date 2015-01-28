@@ -31,7 +31,8 @@
         android:layout_alignEnd="@+id/textViewStatus"
         android:layout_alignParentBottom="true"
         android:layout_below="@+id/prevSessions"
-        android:dividerHeight="5dp" />
+        android:dividerHeight="5dp"
+        android:longClickable="true" />
 
     <ToggleButton
         android:layout_width="wrap_content"

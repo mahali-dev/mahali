@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Session status text goes here:\nsession state, bytes sent and received\nEventually GPS message type stats?"
+        android:text="Data capture is inactive"
         android:id="@+id/textViewStatus"
         android:editable="false"
         android:background="#ffffffff"

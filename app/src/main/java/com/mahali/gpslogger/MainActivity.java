@@ -8,6 +8,8 @@ import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -15,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -38,6 +41,7 @@ import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,7 +133,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
                 Object o = lv.getItemAtPosition(position);
-                GPSSession fullObject = (GPSSession)o;
+                GPSSession fullObject = (GPSSession) o;
                 Log.i(TAG, "You have chosen: " + " " + fullObject.getFileName());
 
                 //TODO: implement a selection menu in front of these options...
@@ -231,6 +235,10 @@ public class MainActivity extends ActionBarActivity {
         }
 
         updateSessionListView();
+
+        final TextView tv = (TextView) findViewById(R.id.textViewStatus);
+        tv.setText("Data capture is inactive");
+
     }
 
     public void onConfigButtonClicked(View view) {
@@ -266,6 +274,16 @@ public class MainActivity extends ActionBarActivity {
     private static UsbSerialPort sPort = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private int serialStatsRxBytes = 0;
+
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            final Integer rxBytes = (Integer) msg.what;
+            final String s = NumberFormat.getIntegerInstance().format(rxBytes);
+            final TextView tv = (TextView) findViewById(R.id.textViewStatus);
+            tv.setText("Bytes received: "+s);
+        }
+    };
 
     // SerialInputOutputManager.Listen is a subclass of Runnable (this makes it's own thread!)
     private final SerialInputOutputManager.Listener mListener =
@@ -283,6 +301,10 @@ public class MainActivity extends ActionBarActivity {
                         Log.e(TAG, "mListener failed to write data to output buffer" + e.getMessage());
                     }
 
+                    serialStatsRxBytes += data.length;
+
+                    mHandler.sendEmptyMessage(serialStatsRxBytes);
+
                     // Also push the bytes out to the log
                     //String decoded = new String(data);
                     //Log.d(TAG, '\n'+decoded+'\n');
@@ -296,6 +318,8 @@ public class MainActivity extends ActionBarActivity {
         }
     }
     private void startIoManager() {
+        serialStatsRxBytes = 0;
+
         if (sPort != null) {
             Log.i(TAG, "Starting io manager ..");
             mSerialIoManager = new SerialInputOutputManager(sPort, mListener);

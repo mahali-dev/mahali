@@ -14,7 +14,7 @@
         android:background="#ffffffff"
         android:nestedScrollingEnabled="false"
         android:layout_below="@+id/toggleButtonCapture"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
@@ -68,7 +68,7 @@
         android:id="@+id/prevSessions"
         android:gravity="right|fill_vertical"
         android:layout_below="@+id/textViewStatus"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -76,7 +76,7 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Config"
+        android:text="@string/button_config_gps"
         android:id="@+id/buttonConfig"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"

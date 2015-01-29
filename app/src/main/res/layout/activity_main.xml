@@ -8,13 +8,13 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Session status text goes here:\nsession state, bytes sent and received\nEventually GPS message type stats?"
+        android:text="Data capture is inactive"
         android:id="@+id/textViewStatus"
         android:editable="false"
         android:background="#ffffffff"
         android:nestedScrollingEnabled="false"
         android:layout_below="@+id/toggleButtonCapture"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
@@ -30,7 +30,9 @@
         android:layout_alignParentEnd="true"
         android:layout_alignEnd="@+id/textViewStatus"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/prevSessions" />
+        android:layout_below="@+id/prevSessions"
+        android:dividerHeight="5dp"
+        android:longClickable="true" />
 
     <ToggleButton
         android:layout_width="wrap_content"
@@ -52,35 +54,35 @@
         android:text="@string/toggleLabel"
         android:id="@+id/textViewSessionStatus"
         android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/toggleButtonCapture"
+        android:layout_alignBottom="@+id/toggleButtonCapture"
+        android:gravity="right|fill_vertical"
+        android:layout_toRightOf="@+id/buttonConfig"
+        android:layout_toEndOf="@+id/buttonConfig" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/prevSessionLabel"
+        android:id="@+id/prevSessions"
+        android:gravity="right|fill_vertical"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_config_gps"
+        android:id="@+id/buttonConfig"
+        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/toggleButtonCapture"
-        android:layout_toStartOf="@+id/toggleButtonCapture"
-        android:layout_alignBottom="@+id/toggleButtonCapture"
-        android:gravity="right|fill_vertical" />
+        android:singleLine="false"
+        android:onClick="onConfigButtonClicked" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/prevSessionLabel"
-        android:id="@+id/prevSessions"
-        android:gravity="right|fill_vertical"
-        android:layout_below="@+id/textViewStatus"
-        android:layout_marginTop="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/prevSessionLabel"
-        android:id="@+id/prevSessions"
-        android:gravity="right|fill_vertical"
-        android:layout_below="@+id/textViewStatus"
-        android:layout_marginTop="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

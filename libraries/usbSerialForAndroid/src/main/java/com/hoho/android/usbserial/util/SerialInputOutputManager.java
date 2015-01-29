@@ -41,7 +41,7 @@ public class SerialInputOutputManager implements Runnable {
     private static final boolean DEBUG = true;
 
     private static final int READ_WAIT_MILLIS = 200;
-    private static final int BUFSIZ = 4096;
+    private static final int BUFSIZ = 65535;
 
     private final UsbSerialPort mDriver;
 
@@ -108,6 +108,17 @@ public class SerialInputOutputManager implements Runnable {
         if (getState() == State.RUNNING) {
             Log.i(TAG, "Stop requested");
             mState = State.STOPPING;
+        }
+    }
+
+    public synchronized void waitForStop() {
+        while (getState()!=State.STOPPED) {
+            try {
+                Thread.sleep(1000);                 //1000 milliseconds is one second.
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            Log.i(TAG,"waitForStop() loop");
         }
     }
 

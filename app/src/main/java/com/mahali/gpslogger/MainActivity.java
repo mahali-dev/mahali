@@ -2,18 +2,24 @@ package com.mahali.gpslogger;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDeviceConnection;
 import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -28,12 +34,21 @@ import com.dropbox.client2.session.Session;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
+
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -42,13 +57,15 @@ public class MainActivity extends ActionBarActivity {
     private UsbManager mUsbManager;
 
     // The directory, in external storage, where mahali files will be stored
-    private final String mahali_directory = "new_files";
+    private final String mahali_directory = "mahali";
 
     // The directory for the user's public documents directory.
     File dirFile;
+    File sessFile;
+    BufferedOutputStream bufOS = null;
 
     //for holding a reference to the file that we're currently reading from/writing to
-//    private File currentFile = null;
+    GPSSession mCurrentSession = null;
 
     // List of the previous sessions found by the app
     private ArrayList<GPSSession> sessionList = null;
@@ -58,6 +75,8 @@ public class MainActivity extends ActionBarActivity {
     private static final String APP_SECRET = "2h6bixl3fsaxx6m";
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.APP_FOLDER;
     private DropboxAPI<AndroidAuthSession> mDBApi;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,70 +118,173 @@ public class MainActivity extends ActionBarActivity {
 
         // ------------------------------------------------
 
+        // TODO: make sure external storage is mounted/available see info here:
+        // http://developer.android.com/training/basics/data-storage/files.html#WriteExternalStorage
         dirFile = new File(Environment.getExternalStorageDirectory(),mahali_directory);
         if (!dirFile.mkdirs()) {
             Log.i(TAG, "Directory not created - it already exists!");
         }
 
         Log.i(TAG, "Directory loaded: "+dirFile.exists());
-
-        sessionList = loadGPSSessions();
-
         final ListView lv = (ListView) findViewById(R.id.sessionListView);
-        lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
+
+        updateSessionListView();
 
         // this method handles the selection of sessions from the list
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
                 Object o = lv.getItemAtPosition(position);
-                GPSSession fullObject = (GPSSession)o;
+                GPSSession fullObject = (GPSSession) o;
                 Log.i(TAG, "You have chosen: " + " " + fullObject.getFileName());
 
                 //TODO: implement a selection menu in front of these options...
 
                 // Try to upload the file to dropbox for the time being
                 sendToDB(fullObject.getAbsolutePath());
-
-                // Stub for deleting the file
-                deleteFile();
             }
         });
 
     }
 
-    public void startSession(View v) {
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId()==R.id.sessionListView) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
 
-        UsbSerialPort mUsbSerialPort;
+            menu.setHeaderTitle(sessionList.get(info.position).getFileName());
+            String[] menuItems = getResources().getStringArray(R.array.sessionLongMenu);
+            for (int i = 0; i<menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
 
-        // Handle button click
-        Log.i(TAG,"Probing for USB devices, then starting background service.");
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        int menuItemIndex = item.getItemId();
+        String[] menuItems = getResources().getStringArray(R.array.sessionLongMenu);
+        String menuItemName = menuItems[menuItemIndex];
+        String listItemName = sessionList.get(info.position).getFileName();
 
-        // TODO: the probe process should probably be handled in an AsyncTask...see example project
+        GPSSession clickedSession = sessionList.get(info.position);
+        Log.v(TAG,String.format("Selected %s for item %s", menuItemName, listItemName));
+
+        // Share session
+        if (menuItemIndex==0) {
+            Log.v(TAG,"Sharing session "+clickedSession.getFileName());
+            shareSession(clickedSession);
+        }
+
+        // Delete session
+        if (menuItemIndex==1) {
+            Log.v(TAG,"Deleting session "+clickedSession.getFileName());
+            deleteSession(clickedSession);
+        }
+
+        return true;
+    }
+
+    private void updateSessionListView() {
+        final ListView lv = (ListView) findViewById(R.id.sessionListView);
+
+        sessionList = loadGPSSessions();
+
+        lv.setAdapter(new GPSSessionBaseAdaptor(this,sessionList));
+        registerForContextMenu(lv);
+    }
+
+    public void startSession(View v) throws IOException {
+        // Throws IOException when something goes wrong
+
+        // Probe for devices
         final List<UsbSerialDriver> drivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
 
-        Log.i(TAG,"Number of drivers: "+Integer.toString(drivers.size()));
-
-        if (drivers.size()>0) {
-            // Get the first port of the first driver
-            mUsbSerialPort = drivers.get(0).getPorts().get(0);
-            Log.i(TAG, "Found device: " + mUsbSerialPort.getDriver().toString());
-
-            // Start the loopback service
-            Log.i(TAG, "Starting loopback service");
-            SerialLoopbackService.startActionLoop(this);
-        } else {
-            Log.i(TAG,"No devices/ports found.  Can't start loopback service.");
+        // Get the first port of the first driver
+        // TODO: probably shouldn't be hard-coded, but multiple cables are unlikely
+        try {
+            sPort = drivers.get(0).getPorts().get(0);
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(TAG,"Serial port not available");
+            throw new IOException("Serial port not available");
         }
 
+        // Open a connection
+        UsbDeviceConnection connection = mUsbManager.openDevice(sPort.getDriver().getDevice());
+        if (connection == null) {
+            Log.e(TAG, "Error opening USB device");
+            throw new IOException("Error opening USB device");
+        }
+
+        try {
+            sPort.open(connection);
+            // TODO: port configuration should almost certainly be configuration
+            sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+        } catch (IOException e) {
+            Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
+            try {
+                sPort.close();
+            } catch (IOException e2) {
+                // Ignore.
+            }
+            sPort = null;
+            throw new IOException("Error configuring USB device:" + e.getMessage());
+        }
+
+        Log.i(TAG,"startSession: creating new GPS session");
+        mCurrentSession = new GPSSession();
+        sessFile = new File(dirFile.getPath(),mCurrentSession.getFileName());
+        if (sessFile.exists()) {
+            Log.e(TAG,"Session file already exists!");
+            throw new IOException("Session file already exists: " + mCurrentSession.getFileName());
+        }
+        // Create file
+        try {
+            boolean fileCreated = sessFile.createNewFile();
+            Log.i(TAG, "fileCreated: " + fileCreated);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to create new file: " + e.getMessage());
+            throw new IOException("Failed to create new file: " + e.getMessage());
+        }
+        // Create output buffer
+        try {
+            bufOS = new BufferedOutputStream(new FileOutputStream(sessFile));
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "File not found exception: " + e.getMessage());
+            throw new IOException("File not found exception during buffer creation");
+        }
+
+        // Start the IO manager thread
+        startIoManager();
     }
 
     public void stopSession(View v) {
+        stopIoManager();
 
-        // TODO: Code to stop session
+        // Block until mSerialIoManager has finished writing and has shutdown?
+        //mSerialIoManager.waitForStop();
 
-        // TODO: Probably want to call lv.setAdapter(...) again, to update the list. See code in onCreate. Will have to create a new GPSSession object
+        try {
+            bufOS.flush();
+            bufOS.close();
+        } catch (IOException e) {
+            Log.e(TAG, "stopSession failed to flush or close file" + e.getMessage());
+        }
+
+        updateSessionListView();
+
+        final TextView tv = (TextView) findViewById(R.id.textViewStatus);
+        tv.setText("Data capture is inactive");
+
+    }
+
+    public void onConfigButtonClicked(View view) {
+
+        Intent intent = new Intent(this, ConfigActivity.class);
+        startActivity(intent);
 
     }
 
@@ -173,14 +295,86 @@ public class MainActivity extends ActionBarActivity {
         if (on) {
             // Handle toggle on
             Log.i(TAG,"Starting session.");
-
-            startSession(view);
+            try {
+                startSession(view);
+            } catch (IOException e) {
+                // Failed to start session
+                Toast.makeText(this, e.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                ((ToggleButton) view).setChecked(false);
+            }
 
         } else {
             // Handle toggle off
             Log.i(TAG, "Stopping session.");
-
             stopSession(view);
+        }
+    }
+
+    /// Serial Port code
+    private static UsbSerialPort sPort = null;
+    private SerialInputOutputManager mSerialIoManager;
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private int serialStatsRxBytes = 0;
+
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            final Integer rxBytes = (Integer) msg.what;
+            final String s = NumberFormat.getIntegerInstance().format(rxBytes);
+            final TextView tv = (TextView) findViewById(R.id.textViewStatus);
+            tv.setText("Name: "+mCurrentSession.getFileName()+"\nBytes received: "+s);
+        }
+    };
+
+    // SerialInputOutputManager.Listen is a subclass of Runnable (this makes it's own thread!)
+    private final SerialInputOutputManager.Listener mListener =
+            new SerialInputOutputManager.Listener() {
+                @Override
+                public void onRunError(Exception e) {
+                    Log.d(TAG, "Runner stopped.");
+                }
+                @Override
+                public void onNewData(final byte[] data) {
+                    // Write data to session file
+                    try {
+                        bufOS.write(data);
+                    } catch (IOException e) {
+                        Log.e(TAG, "mListener failed to write data to output buffer" + e.getMessage());
+                    }
+
+                    serialStatsRxBytes += data.length;
+
+                    //mHandler.sendEmptyMessage(serialStatsRxBytes);
+
+                    // Also push the bytes out to the log
+                    //String decoded = new String(data);
+                    //Log.d(TAG, '\n'+decoded+'\n');
+                }
+            };
+    private void stopIoManager() {
+        if (mSerialIoManager != null) {
+            Log.i(TAG, "Stopping io manager ..");
+            mSerialIoManager.stop();
+            mSerialIoManager = null;
+        }
+    }
+    private void startIoManager() {
+        serialStatsRxBytes = 0;
+
+        if (sPort != null) {
+            Log.i(TAG, "Starting io manager ..");
+            mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+            mExecutor.submit(mSerialIoManager);
+
+            SharedPreferences settings = getSharedPreferences(ConfigActivity.PREFS_NAME, 0);
+            String curConfig = "\r\n"+
+                    settings.getString("gpsConfig", ConfigActivity.DEFAULT_GPS_CONFIG)+
+                    "\r\n";
+            Log.i(TAG,"Sending to GPS"+curConfig);
+
+            // NOTE: writeAsync writes into a smallish buffer that we may want to make bigger,
+            // otherwise an exception will be thrown.
+            // TODO: do we need to add CR+LF chars here for the Novatel?
+            mSerialIoManager.writeAsync(curConfig.getBytes());
         }
     }
 
@@ -188,7 +382,8 @@ public class MainActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
+        //        return true;
     }
 
     @Override
@@ -200,8 +395,8 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent settingsIntent = new Intent(this, SettingsActivity.class);
-            startActivity(settingsIntent);
+//            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+//            startActivity(settingsIntent);
             return true;
         }
 
@@ -270,11 +465,28 @@ public class MainActivity extends ActionBarActivity {
             }
         }
 
+        // Reverse order so most recent session is at top of list
+        Collections.reverse(sessions);
+
         return sessions;
     }
 
-    private void deleteFile() {
-        // TODO: write code for file deletion. Note that we'll have to call lv.setAdapter(...) again, to update the list
+    private void shareSession(GPSSession sess) {
+        File mSessFile = new File(dirFile.getPath(),sess.getFileName());
+
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(mSessFile));
+        sendIntent.setType("application/octet-stream"); // This seems to be a good MIME type for raw binary data
+        startActivity(sendIntent);
+    }
+
+    private void deleteSession(GPSSession sess) {
+        // TODO: write code for file deletion. Note that we'll have to call updateSessionListView() again, to update the list
+        File mSessFile = new File(dirFile.getPath(),sess.getFileName());
+        Log.v(TAG,"deteleting "+mSessFile.getAbsolutePath());
+        boolean deleted = mSessFile.delete();
+        updateSessionListView();
     }
 
     // Send file to DropBox

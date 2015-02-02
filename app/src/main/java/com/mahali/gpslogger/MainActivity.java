@@ -46,6 +46,7 @@ import java.io.FileNotFoundException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -466,7 +467,8 @@ public class MainActivity extends ActionBarActivity {
         }
 
         // Reverse order so most recent session is at top of list
-        Collections.reverse(sessions);
+        Comparator<GPSSession> c = Collections.reverseOrder();
+        Collections.sort(sessions,c);
 
         return sessions;
     }

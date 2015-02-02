@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 /**
  * Created by ktikennedy on 1/17/15.
  */
-public class GPSSession {
+public class GPSSession implements Comparable {
     private final String TAG = GPSSession.class.getSimpleName();
 
     private String absolutePath;
@@ -50,4 +50,12 @@ public class GPSSession {
 
     public long getSize() {return size;}
 
+    @Override
+    public int compareTo(Object another) {
+        // Cast the object to a GPSSession
+        GPSSession theOther = (GPSSession)another;
+
+        //Use the String compareTo method to compare based on date in filename
+        return this.fileName.compareTo(theOther.getFileName());
+    }
 }

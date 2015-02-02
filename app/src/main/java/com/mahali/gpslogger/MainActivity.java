@@ -484,7 +484,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void deleteSession(GPSSession sess) {
-        // TODO: write code for file deletion. Note that we'll have to call updateSessionListView() again, to update the list
         File mSessFile = new File(dirFile.getPath(),sess.getFileName());
         Log.v(TAG,"deteleting "+mSessFile.getAbsolutePath());
         boolean deleted = mSessFile.delete();

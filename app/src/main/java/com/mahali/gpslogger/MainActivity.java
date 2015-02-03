@@ -1,5 +1,6 @@
 package com.mahali.gpslogger;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbDeviceConnection;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -25,6 +27,7 @@ import android.widget.ToggleButton;
 
 // Dropbox Includes
 import com.dropbox.client2.DropboxAPI;
+import com.dropbox.client2.ProgressListener;
 import com.dropbox.client2.android.AndroidAuthSession;
 import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AppKeyPair;
@@ -72,12 +75,24 @@ public class MainActivity extends ActionBarActivity {
     private ArrayList<GPSSession> sessionList = null;
 
     //Required dropbox fields. Get app key, app secret, and access type from App Console on dropbox website. Make sure the key matches the key in AndroidManifest.xml!
-    private static final String APP_KEY = "2wmhe173wllfuwz";
-    private static final String APP_SECRET = "2h6bixl3fsaxx6m";
-    private static final Session.AccessType ACCESS_TYPE = Session.AccessType.APP_FOLDER;
+    private static final String APP_KEY = "iyagryef5rj55xn";//"2wmhe173wllfuwz";
+    private static final String APP_SECRET = "3axm6y8j67lovyb";//"2h6bixl3fsaxx6m";
+    private static final Session.AccessType ACCESS_TYPE = Session.AccessType.AUTO;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
 
+    // Following code is for the Dropbox upload notification
+    // Notification code from http://developer.android.com/guide/topics/ui/notifiers/notifications.html
+    // Need to create a builder for the notification we're creating
+    private final NotificationCompat.Builder mBuilder =
+            new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.drawable.cloud_upload)
+                    .setContentTitle("Dropbox upload progress:")
+                    .setContentText("0/0");
+    // Get the phone's notification manager service
+    NotificationManager mNotificationManager = null;
+    // mId allows you to update the notification later on.
+    final int mId = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +161,8 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        // For Dropbox upload notification. Can only get system service once onCreate has been called.
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     @Override
@@ -538,7 +555,20 @@ public class MainActivity extends ActionBarActivity {
 
             DropboxAPI.Entry response = null;
             try {
-                response = mDBApi.putFile("/"+fileToSend.getName(), inputStream, fileToSend.length(), null, null);
+
+                // Send the notification
+                mNotificationManager.notify(mId, mBuilder.build());
+
+                ProgressListener listener = new ProgressListener() {
+                    @Override
+                    public void onProgress(long l, long l2) {
+                        Log.i(TAG,"Dropbox progress made!");
+                        mBuilder.setContentText(l+"/"+l2);
+                        mNotificationManager.notify(mId, mBuilder.build());
+                    }
+                };
+
+                response = mDBApi.putFile("/"+fileToSend.getName(), inputStream, fileToSend.length(), null, listener);
             } catch (DropboxException e) {
                 Log.e(TAG,"DropBox putfile failed!");
             }
@@ -551,6 +581,8 @@ public class MainActivity extends ActionBarActivity {
             if (! (response==null)) {
                 Log.i("DbExampleLog", "The uploaded file's rev is: " + response.rev);
 
+                mBuilder.setContentText("Success!");
+                mNotificationManager.notify(mId, mBuilder.build());
                 Toast.makeText(MainActivity.this,"File uploaded to DropBox. Path: "+response.path, Toast.LENGTH_LONG).show();
             }
         }

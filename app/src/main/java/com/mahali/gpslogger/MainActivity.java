@@ -101,6 +101,8 @@ public class MainActivity extends ActionBarActivity {
 
         // TODO: pull a GPS recvr config file from dropbox
 
+        mTimer.start();
+
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         // ------------------------------------------------
@@ -294,8 +296,7 @@ public class MainActivity extends ActionBarActivity {
 
         updateSessionListView();
 
-        final TextView tv = (TextView) findViewById(R.id.textViewStatus);
-        tv.setText("Data capture is inactive");
+        mCurrentSession = null;
 
     }
 
@@ -332,14 +333,40 @@ public class MainActivity extends ActionBarActivity {
     private static UsbSerialPort sPort = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    private int serialStatsRxBytes = 0;
 
+    // TODO: sychronize the variable below...it's being shared between threads
+    private static Integer serialStatsRxBytes = 0;
+
+    // Provides periodic UI updates with bytes RXed stats
+    Thread mTimer = new Thread() {
+        public void run () {
+            for (;;) {
+                // do stuff in a separate thread
+
+                mHandler.sendEmptyMessage(serialStatsRxBytes);
+
+                //uiCallback.sendEmptyMessage(0);
+                try {
+                    Thread.sleep(500);    // sleep for 3 seconds
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    };
+
+    // Update UI with status message
     public Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
-            final Integer rxBytes = (Integer) msg.what;
-            final String s = NumberFormat.getIntegerInstance().format(rxBytes);
             final TextView tv = (TextView) findViewById(R.id.textViewStatus);
-            tv.setText("Name: "+mCurrentSession.getFileName()+"\nBytes received: "+s);
+
+            if (mCurrentSession!=null) {
+                final Integer rxBytes = (Integer) msg.what;
+                final String s = NumberFormat.getIntegerInstance().format(rxBytes);
+                tv.setText("Name: "+mCurrentSession.getFileName()+"\nBytes received: "+s);
+            } else {
+                tv.setText("Data capture is inactive");
+            }
         }
     };
 
@@ -361,11 +388,6 @@ public class MainActivity extends ActionBarActivity {
 
                     serialStatsRxBytes += data.length;
 
-                    //mHandler.sendEmptyMessage(serialStatsRxBytes);
-
-                    // Also push the bytes out to the log
-                    //String decoded = new String(data);
-                    //Log.d(TAG, '\n'+decoded+'\n');
                 }
             };
     private void stopIoManager() {

@@ -590,7 +590,7 @@ public class MainActivity extends ActionBarActivity {
                     }
                 };
 
-                response = mDBApi.putFile("/"+fileToSend.getName(), inputStream, fileToSend.length(), null, listener);
+                response = mDBApi.putFile("/Brazil_2015_data/"+fileToSend.getName(), inputStream, fileToSend.length(), null, listener);
             } catch (DropboxException e) {
                 Log.e(TAG,"DropBox putfile failed!");
             }

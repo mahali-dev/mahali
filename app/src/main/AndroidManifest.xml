@@ -38,7 +38,7 @@
             <intent-filter>
 
                 <!-- The key below,i.e. 2wmhe173wllfuwz, was obtained from the app console on dropbox website -->
-                <data android:scheme="db-2wmhe173wllfuwz" />
+                <data android:scheme="db-iyagryef5rj55xn" />
 
                 <action android:name="android.intent.action.VIEW" />
 

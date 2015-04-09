@@ -41,11 +41,16 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +58,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+// for HTTP requests over wifi connection to Edison
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+// For json object parsing
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -62,6 +82,7 @@ public class MainActivity extends ActionBarActivity {
 
     // The directory, in external storage, where mahali files will be stored
     private final String mahali_directory = "mahali";
+    String[] gpsFileExtensions = {".nvd",".jps",".bin"};
 
     // The directory for the user's public documents directory.
     File dirFile;
@@ -80,6 +101,9 @@ public class MainActivity extends ActionBarActivity {
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.AUTO;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
+    private static final String serverIP = "18.189.57.53"; //for Kit laptop
+//    private static final String serverIP = "18.111.42.103"; //for edison
+    private static final String serverPort = "5000";
 
     // Following code is for the Dropbox upload notification
     // Notification code from http://developer.android.com/guide/topics/ui/notifiers/notifications.html
@@ -327,6 +351,11 @@ public class MainActivity extends ActionBarActivity {
             Log.i(TAG, "Stopping session.");
             stopSession(view);
         }
+
+        Toast.makeText(MainActivity.this,"Attempting HTTP request", Toast.LENGTH_LONG).show();
+
+        // Have to call an asynchronous task for this
+        new SendHttpRequestTask().execute("blah");
     }
 
     /// Serial Port code
@@ -493,15 +522,8 @@ public class MainActivity extends ActionBarActivity {
             File f = gps_files[i];
             String fileName = f.getName();
 
-            // First check if file name is long enough to be a mahali gps data file
-            if (fileName.length() >= 17) {
-                // Grab what should be the '.nvd' file extension, if it's a mahali file
-                String test = fileName.substring(13, 17);
-
-                if (test.equals(".nvd")) {
-                    // Create new GPS sessions with the file name and length of file in bytes
-                    sessions.add(new GPSSession(fileName,f.getAbsolutePath(),f.length()));
-                }
+            if (verifyFileType(fileName)) {
+                sessions.add(new GPSSession(fileName,f.getAbsolutePath(),f.length()));
             }
         }
 
@@ -510,6 +532,22 @@ public class MainActivity extends ActionBarActivity {
         Collections.sort(sessions,c);
 
         return sessions;
+    }
+
+    // Verify that the file extension of fileName is one of those in gpsFileExtensions list
+    private boolean verifyFileType(String fileName) {
+
+        int len  = fileName.length();
+
+        for (int i=0;i<gpsFileExtensions.length;i++) {
+            String fileExt = gpsFileExtensions[i];
+
+            if (fileName.indexOf(fileExt) != -1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void shareSession(GPSSession sess) {
@@ -622,5 +660,204 @@ public class MainActivity extends ActionBarActivity {
 //            Toast.makeText(MainActivity.this,"Already linked with DropBox!", Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    /* This tasks figures out which files that are present on the server are NOT present on this phone, and downloads them.
+     Note that it was decided to figure out LOCALLY which files to download, because we don't really want the server deciding that for us.
+       The update process could be done with fewer HTTP transactions the other way, but it gives up control that the end user should have
+      */
+    private class SendHttpRequestTask extends AsyncTask<String, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(String... params) {
+            int numberOfFilesDownloaded = 0;
+
+            Log.i(TAG, "calling SendHttpRequestTask");
+
+            // TODO: implement a timeout on the HTTP request. Currently It'll just keep spinning its wheels
+
+            try {
+
+                // First get list of new files on server
+
+                HttpClient client = new DefaultHttpClient();
+                String getURL = "http://"+serverIP+":"+serverPort+"/return_files_json" ;
+                HttpGet get = new HttpGet(getURL);
+                HttpResponse responseGet = client.execute(get);
+                StatusLine statusLine = responseGet.getStatusLine();
+                int statusCode = statusLine.getStatusCode();
+
+                Log.i(TAG, "first statuscode: " + statusCode);
+
+                String response_string = "";
+                if (statusCode == 200 ) {
+                    HttpEntity resEntityGet = responseGet.getEntity();
+
+                    //do something with the response
+                    response_string = EntityUtils.toString(resEntityGet);
+//                    Log.i(TAG, response_string);
+                }
+                else {
+                    numberOfFilesDownloaded = -1;
+                    return new Integer(numberOfFilesDownloaded);
+                }
+
+
+
+                // Then figure out what new files we need to download
+
+                JSONParser jsonParser = new JSONParser();
+                // TODO: unhack this. Depending on "result", it seems that the JSON object created can be of type JSONObject or JSONArray
+//                JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
+                JSONArray jsonFilesArray= (JSONArray) jsonParser.parse(response_string);
+                Log.i(TAG, "remote toString: " + jsonFilesArray.toString());
+
+                JSONArray filesToDownload = compareRemoteFiles(jsonFilesArray);
+                Log.i(TAG, "files to download toString: " + filesToDownload.toString());
+
+
+
+                // Then download those files
+
+                if (filesToDownload.size() > 0) {
+
+
+                    for (int i=0;i<filesToDownload.size();i++) {
+                        String fileName = (String) filesToDownload.get(i);
+
+                        getURL = "http://"+serverIP+":"+serverPort+"/return_files_json/"+ fileName;
+                        get = new HttpGet(getURL);
+                        responseGet = client.execute(get);
+                        statusLine = responseGet.getStatusLine();
+                        statusCode = statusLine.getStatusCode();
+
+                        StringBuilder builder = new StringBuilder();
+
+                        Log.i(TAG, "second statuscode: " + statusCode);
+
+                        if (statusCode == 200 ) { //signifies success!
+
+                            HttpEntity resEntityGet = responseGet.getEntity();
+
+                            InputStream content = resEntityGet.getContent();
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(content));
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                builder.append(line);
+                            }
+                            reader.close();
+
+                            //do something with the response
+
+                            Log.i(TAG, builder.toString());
+
+
+                            File newFile = new File(dirFile.getPath(),fileName);
+                            if (newFile.exists()) {
+                                Log.e(TAG,"File already exists!");
+                                throw new IOException("Session file already exists: " + fileName);
+                            }
+                            // Create file
+                            try {
+                                boolean fileCreated = newFile.createNewFile();
+                                Log.i(TAG, "fileCreated: " + newFile);
+                            }
+                            catch (IOException e) {
+                                Log.e(TAG, "Failed to create new file: " + e.getMessage());
+                                throw new IOException("Failed to create new file: " + e.getMessage());
+                            }
+                            // Write to file
+                            try {
+                                final PrintStream printOS = new PrintStream(new FileOutputStream(newFile));
+                                printOS.print(builder.toString());
+                                printOS.close();
+
+                                numberOfFilesDownloaded++;
+
+                                Log.i(TAG, "fileWritten: " + newFile);
+                            }
+                            catch (FileNotFoundException e) {
+                                Log.e(TAG, "File not found exception: " + e.getMessage());
+                                throw new IOException("File not found exception during buffer creation");
+                            }
+                        }
+                        else {
+                            numberOfFilesDownloaded -= 10;
+                        }
+                    }
+
+                }
+                else {
+                    numberOfFilesDownloaded = 0;
+                }
+
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+            } catch (NullPointerException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            return new Integer(numberOfFilesDownloaded);
+        }
+
+        @Override
+        protected void onPostExecute(Integer numberOfFilesDownloaded) {
+
+            if (numberOfFilesDownloaded > 0) {
+                updateSessionListView(); // update the session list
+                Toast.makeText(MainActivity.this, "Files downloaded! Number of files: "+numberOfFilesDownloaded, Toast.LENGTH_LONG).show();
+            }
+            else if (numberOfFilesDownloaded == 0) {
+                Toast.makeText(MainActivity.this, "No new files to download", Toast.LENGTH_LONG).show();
+            }
+            else {
+                Toast.makeText(MainActivity.this, "No files downloaded. Error code: "+numberOfFilesDownloaded, Toast.LENGTH_LONG).show();
+            }
+
+        }
+
+        // Figure out which files we want to download from the server
+        // TODO: optimize this function. I'm sure there's a better way to do this than blindly stepping through all the files in both arrays
+        private JSONArray compareRemoteFiles(JSONArray remoteFiles) {
+            Log.i(TAG, "calling compareRemoteFiles");
+
+            JSONArray filesToDownload = new JSONArray();
+
+            File localFiles[] = dirFile.listFiles();
+
+//            Log.i(TAG, "num remote files: "+remoteFiles.size());
+
+            for (int i=0;i<remoteFiles.size();i++) {
+                String remoteFileName = (String) remoteFiles.get(i);
+
+                if (!verifyFileType(remoteFileName)) {
+                    continue;  // skip this file if it's not of our desired gps file types
+                }
+
+                Boolean foundLocally = false;
+
+                int j = 0;
+                while (!foundLocally && j<localFiles.length) {
+                    File f = localFiles[j];
+
+                    if (remoteFileName.equals(f.getName())) {
+                        foundLocally = true;
+                    }
+
+                    j++;
+
+                }
+
+                if (!foundLocally) {
+                    filesToDownload.add(remoteFileName);
+                }
+
+            }
+
+            return filesToDownload;
+
+        }
     }
 }

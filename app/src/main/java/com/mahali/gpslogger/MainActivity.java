@@ -82,7 +82,7 @@ public class MainActivity extends ActionBarActivity {
 
     // The directory, in external storage, where mahali files will be stored
     private final String mahali_directory = "mahali";
-    String[] gpsFileExtensions = {".nvd",".jps",".bin"};
+    String[] gpsFileExtensions = {".nvd",".jps",".bin","MAHALI"};
 
     // The directory for the user's public documents directory.
     File dirFile;
@@ -101,9 +101,12 @@ public class MainActivity extends ActionBarActivity {
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.AUTO;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
-    private static final String serverIP = "18.189.57.53"; //for Kit laptop
+//    private static final String serverIP = "18.189.57.53"; //for Kit laptop
+//    private static final String serverIP = "192.168.0.106"; //for Kit home
+    private static final String serverIP = "18.111.63.194"; //for Ryan edison
 //    private static final String serverIP = "18.111.42.103"; //for edison
-    private static final String serverPort = "5000";
+//    private static final String serverPort = "5000";
+    private static final String serverPort = "8080"; // For Ryan edison
 
     // Following code is for the Dropbox upload notification
     // Notification code from http://developer.android.com/guide/topics/ui/notifiers/notifications.html
@@ -352,7 +355,7 @@ public class MainActivity extends ActionBarActivity {
             stopSession(view);
         }
 
-        Toast.makeText(MainActivity.this,"Attempting HTTP request", Toast.LENGTH_LONG).show();
+        Toast.makeText(MainActivity.this,"Attempting file download from server", Toast.LENGTH_LONG).show();
 
         // Have to call an asynchronous task for this
         new SendHttpRequestTask().execute("blah");
@@ -666,7 +669,7 @@ public class MainActivity extends ActionBarActivity {
      Note that it was decided to figure out LOCALLY which files to download, because we don't really want the server deciding that for us.
        The update process could be done with fewer HTTP transactions the other way, but it gives up control that the end user should have
       */
-    private class SendHttpRequestTask extends AsyncTask<String, Void, Integer> {
+    private class SendHttpRequestTask extends AsyncTask<String, Integer, Integer> {
 
         @Override
         protected Integer doInBackground(String... params) {
@@ -681,7 +684,7 @@ public class MainActivity extends ActionBarActivity {
                 // First get list of new files on server
 
                 HttpClient client = new DefaultHttpClient();
-                String getURL = "http://"+serverIP+":"+serverPort+"/return_files_json" ;
+                String getURL = "http://"+serverIP+":"+serverPort+"/logs/return_files_json/science" ;
                 HttpGet get = new HttpGet(getURL);
                 HttpResponse responseGet = client.execute(get);
                 StatusLine statusLine = responseGet.getStatusLine();
@@ -715,17 +718,14 @@ public class MainActivity extends ActionBarActivity {
                 JSONArray filesToDownload = compareRemoteFiles(jsonFilesArray);
                 Log.i(TAG, "files to download toString: " + filesToDownload.toString());
 
-
-
                 // Then download those files
 
                 if (filesToDownload.size() > 0) {
 
-
                     for (int i=0;i<filesToDownload.size();i++) {
                         String fileName = (String) filesToDownload.get(i);
 
-                        getURL = "http://"+serverIP+":"+serverPort+"/return_files_json/"+ fileName;
+                        getURL = "http://"+serverIP+":"+serverPort+"/logs/science/"+ fileName;
                         get = new HttpGet(getURL);
                         responseGet = client.execute(get);
                         statusLine = responseGet.getStatusLine();
@@ -740,51 +740,37 @@ public class MainActivity extends ActionBarActivity {
                             HttpEntity resEntityGet = responseGet.getEntity();
 
                             InputStream content = resEntityGet.getContent();
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(content));
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                builder.append(line);
-                            }
-                            reader.close();
 
-                            //do something with the response
+                            if (content != null) {
+                                File newFile = new File(dirFile.getPath(), fileName);
+                                FileOutputStream fos = new FileOutputStream(newFile);
+                                byte buff[] = new byte[128];
 
-                            Log.i(TAG, builder.toString());
+                                while (true) {
+                                    int readbyte = content.read(buff);
 
+                                    if (readbyte <= 0)
+                                        break;
 
-                            File newFile = new File(dirFile.getPath(),fileName);
-                            if (newFile.exists()) {
-                                Log.e(TAG,"File already exists!");
-                                throw new IOException("Session file already exists: " + fileName);
-                            }
-                            // Create file
-                            try {
-                                boolean fileCreated = newFile.createNewFile();
-                                Log.i(TAG, "fileCreated: " + newFile);
-                            }
-                            catch (IOException e) {
-                                Log.e(TAG, "Failed to create new file: " + e.getMessage());
-                                throw new IOException("Failed to create new file: " + e.getMessage());
-                            }
-                            // Write to file
-                            try {
-                                final PrintStream printOS = new PrintStream(new FileOutputStream(newFile));
-                                printOS.print(builder.toString());
-                                printOS.close();
+                                    Log.i(TAG, "String bytes read: " + new String(buff, "UTF-8"));
+                                    fos.write(buff, 0, readbyte);
+                                }
 
-                                numberOfFilesDownloaded++;
+                                content.close();
 
-                                Log.i(TAG, "fileWritten: " + newFile);
+                                // for every 5 files we download, publish progress
+                                if ( (i+1)%5 == 0) {
+                                    publishProgress(i + 1, filesToDownload.size());
+                                }
                             }
-                            catch (FileNotFoundException e) {
-                                Log.e(TAG, "File not found exception: " + e.getMessage());
-                                throw new IOException("File not found exception during buffer creation");
-                            }
+
                         }
                         else {
                             numberOfFilesDownloaded -= 10;
                         }
                     }
+
+                    numberOfFilesDownloaded = filesToDownload.size(); //if we get here, we have successfully downloaded all the files
 
                 }
                 else {
@@ -799,7 +785,11 @@ public class MainActivity extends ActionBarActivity {
                 ex.printStackTrace();
             }
 
-            return new Integer(numberOfFilesDownloaded);
+            return numberOfFilesDownloaded;
+        }
+
+        protected void onProgressUpdate(Integer numberOfFilesDownloaded,Integer numberOfFilesToDownload) {
+            Toast.makeText(MainActivity.this, numberOfFilesDownloaded+" of "+numberOfFilesToDownload+" downloaded", Toast.LENGTH_LONG).show();
         }
 
         @Override

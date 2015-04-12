@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mahali.gpslogger.SettingsActivity">
+    <!--<item android:id="@+id/action_restoreDefaultConfig" android:title="@string/action_restoreDefault"-->
+        <!--android:orderInCategory="100" app:showAsAction="never" />-->
+
+</menu>

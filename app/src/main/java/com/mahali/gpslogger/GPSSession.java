@@ -35,6 +35,12 @@ import java.text.SimpleDateFormat;
 /**
  * Created by ktikennedy on 1/17/15.
  */
+
+/*
+This class is a wrapper around a GPS data session file, stored in the device's external memory.
+
+Whenever a new instance is created, the constructor set the file name based on the current time. Note that the time is only captured up to second precision, which means that sessions should not be created more rapidly than once per second, otherwise they will be overwritten
+ */
 public class GPSSession implements Comparable {
     private final String TAG = GPSSession.class.getSimpleName();
 
@@ -52,7 +58,7 @@ public class GPSSession implements Comparable {
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd_HHmmss"); //formats the date string. last 2 digits of year, 2 digits for month, then day of month, hours, mintues, seconds
         sdf.setCalendar(cal); //have to set the SimpleDateFormat to use this calendar, otherwise it won't output in UTC
 
-        this.fileName = sdf.format(creationTime)+".nvd";
+        this.fileName = sdf.format(creationTime)+".nvd";  //create filename with current time and extension .nvd. nvd is for novatel. TODO: make this customizable by user
 
         Log.i(TAG,"file: "+this.fileName);
 

@@ -40,12 +40,18 @@ import android.os.Build;
 import android.widget.EditText;
 import android.widget.Toast;
 
+/*
+This activity handles the ascii GPS configuration text which is sent to the receiver upon initial start of a data collection session.
 
+An edited configuration can be stored to the app's SharedPreferences, and is restored from there on app startup.
+ */
 public class ConfigActivity extends ActionBarActivity {
 
     private final String TAG = ConfigActivity.class.getSimpleName();
 
     public static final String PREFS_NAME = "MyPrefsFile";
+
+    // default GPS config for Novatel GPS Station 6 and  GSV4004B receivers.
     public static final String DEFAULT_GPS_CONFIG = "unlogall\r\n"+
             "log,com1,versiona,once\r\n"+
             "ecutoff,10\r\n"+
@@ -72,7 +78,7 @@ public class ConfigActivity extends ActionBarActivity {
 
         // Restore preferences
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);
+        String curConfig = settings.getString("gpsConfig",DEFAULT_GPS_CONFIG);  // if gpsConfig does not exist, DEFAULT_GPS_CONFIG is returned
         EditText t = (EditText) findViewById(R.id.editTextConfig);
         t.setText(curConfig);
     }

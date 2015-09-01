@@ -26,9 +26,6 @@
 package com.mahali.gpslogger;
 
 import java.util.ArrayList;
-
-//import com.publicstaticdroidmain.R;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +33,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+/*
+This is a wrapper class that is necessary for formatting the session list view in the app's main menu
+ */
 public class GPSSessionBaseAdaptor extends BaseAdapter {
     private static ArrayList<GPSSession> sessionList;
 

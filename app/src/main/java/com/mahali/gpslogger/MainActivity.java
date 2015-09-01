@@ -82,37 +82,53 @@ import java.util.concurrent.Executors;
 
 
 
-
+/*
+The main screen of the mahali app. Handles start/stop of GPS data collection sessions, listing of stored GPS data sessions, routing to other app menus.
+ */
 public class MainActivity extends ActionBarActivity {
 
+    // for debug
     private final String TAG = MainActivity.class.getSimpleName();
+
     private UsbManager mUsbManager;
 
-    // The directory, in external storage, where mahali files will be stored
+
+    // Device local file storage stuff
+
+    // The directory, in device external storage, where GPS data files will be stored
+    // TODO: make this directory editable by user? Leave as is for now.
     private final String mahali_directory = "mahali";
     private static String[] gpsFileExtensions = {".nvd",".jps",".bin","MAHALI"};
+    private static File dirFile;     // File container for mahali_directory.
+    File sessFile;                  // File container for current GPS session. This file is continually augmented with bytes coming from the USB interface as long as session is running.
 
-    // The qualified name of the user's current mahali-app-created file on this android device. Located in mahali_directory.
-    private static File dirFile;
-    File sessFile;
+
+    // IO related
+
     BufferedOutputStream bufOS = null;
 
-    //for holding a reference to the file that we're currently reading from/writing to
-    GPSSession mCurrentSession = null;
 
+    // GPS session objects
+
+    // Wraps around file for current GPS data file.
+    GPSSession mCurrentSession = null;
     // List of the previous sessions found by the app
     private ArrayList<GPSSession> sessionList = null;
 
+
+    // Dropbox (DB) stuff
+
     //Required dropbox fields. Get app key, app secret, and access type from App Console on dropbox website. Make sure the key matches the key in AndroidManifest.xml!
+    // TODO: should these be editable?
     private static final String APP_KEY = "iyagryef5rj55xn";//"2wmhe173wllfuwz";
     private static final String APP_SECRET = "3axm6y8j67lovyb";//"2h6bixl3fsaxx6m";
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.AUTO;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
     // the full path of the directory in dropbox to which files will be uploaded for the "quick upload" option (a single tap on a file in the mahali main screen)
-    private static String dbDirName = "/Brazil_2015_data/";
+    private static String dbDirName = "/Brazil_2015_data/";  //TODO: test this
 
-    // Following code is for the Dropbox upload notification
+    // For the Dropbox upload notification
     // Notification code from http://developer.android.com/guide/topics/ui/notifiers/notifications.html
     // Need to create a builder for the notification we're creating
     private final NotificationCompat.Builder mBuilder =
@@ -125,6 +141,11 @@ public class MainActivity extends ActionBarActivity {
     // mId allows you to update the notification later on.
     final int mId = 1;
 
+
+
+    /*
+    Called on initial app startup. Sets up all main activity objects, handles resumption of existing dropbox authentication, sets up previous GPS session list, sets up click listener for quick tap DB upload
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -135,6 +156,7 @@ public class MainActivity extends ActionBarActivity {
         mTimer.start();
 
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+
 
         // ------------------------------------------------
         //Setup for DropBox connection
@@ -151,6 +173,7 @@ public class MainActivity extends ActionBarActivity {
         // SharedPreferences is a simple way to store basic key-value pairs. In this case we're using it to store dropbox configuration info
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 
+        // TODO: make access token editable?
         // get value of DB OAuth2AccessToken from shared preferences file. If it's not present, will take value "not_created"
         String OAuth2AccessToken = sharedPref.getString("OAuth2AccessToken","not_authenticated");
 
@@ -167,6 +190,7 @@ public class MainActivity extends ActionBarActivity {
 
         // ------------------------------------------------
 
+
         // TODO: make sure external storage is mounted/available see info here:
         // http://developer.android.com/training/basics/data-storage/files.html#WriteExternalStorage
         dirFile = new File(Environment.getExternalStorageDirectory(),mahali_directory);
@@ -178,6 +202,7 @@ public class MainActivity extends ActionBarActivity {
         final ListView lv = (ListView) findViewById(R.id.sessionListView);
 
         updateSessionListView();
+
 
         // this method handles the selection of sessions from the list (single quick tap on session)
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -240,6 +265,9 @@ public class MainActivity extends ActionBarActivity {
         return true;
     }
 
+    /*
+    Updates list of GPS sessions
+     */
     private void updateSessionListView() {
         final ListView lv = (ListView) findViewById(R.id.sessionListView);
 
@@ -249,6 +277,9 @@ public class MainActivity extends ActionBarActivity {
         registerForContextMenu(lv);
     }
 
+    /*
+    Handles start of a GPS session, setting up USB io manager
+     */
     public void startSession(View v) throws IOException {
         // Throws IOException when something goes wrong
 
@@ -314,6 +345,9 @@ public class MainActivity extends ActionBarActivity {
         startIoManager();
     }
 
+    /*
+    Handles takedown of a GPS session, adds to session list
+     */
     public void stopSession(View v) {
         stopIoManager();
 
@@ -333,6 +367,9 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    /*
+    Opens GPS config menu
+     */
     public void onConfigButtonClicked(View view) {
 
         Intent intent = new Intent(this, ConfigActivity.class);
@@ -340,6 +377,9 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    /*
+    Hanldes user clicks of session toggle button
+     */
     public void onSessionToggleClicked(View view) {
         // Is the toggle on?
         boolean on = ((ToggleButton) view).isChecked();
@@ -362,7 +402,11 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    /// Serial Port code
+    ///////////////////////////////////////////////////////////////////////////
+    /*
+    Serial Port code
+     */
+
     private static UsbSerialPort sPort = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -451,6 +495,9 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -459,6 +506,9 @@ public class MainActivity extends ActionBarActivity {
         //        return true;
     }
 
+    /*
+    Handles selection of options menu from main menu
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -473,18 +523,20 @@ public class MainActivity extends ActionBarActivity {
             startActivity(settingsIntent);
             return true;
         }
+        else if (id == R.id.action_help) {
+            Intent helpIntent = new Intent(this, HelpActivity.class);
+            startActivity(helpIntent);
+            return true;
+
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
-//    public void openSearch() {
-//        Intent intent = new Intent(this, DisplayMessageActivity.class);
-//        EditText editText = (EditText) findViewById(R.id.edit_message);
-//        String message = "Search Blarg!";
-//        intent.putExtra(EXTRA_MESSAGE, message);
-//        startActivity(intent);
-//    }
-
+    /*
+    Called whenever we return to main menu. Handles DB authentication, because a first time DB authentication will switch out of the app, get an access token, and return to the app, causing onResume to be called
+    Also update session list view
+     */
     protected void onResume() {
         super.onResume();
 
@@ -527,6 +579,9 @@ public class MainActivity extends ActionBarActivity {
         updateSessionListView(); // update the session list in case we returned from the settings activity
     }
 
+    /*
+    Loads GPS sessions from files present in device external storage
+     */
     public ArrayList<GPSSession> loadGPSSessions() {
         Log.i(TAG,"loadGPSSessions");
         File gps_files[] = dirFile.listFiles();
@@ -565,6 +620,9 @@ public class MainActivity extends ActionBarActivity {
         return false;
     }
 
+    /*
+    Handles sharing a GPS session file through standard android share api
+     */
     private void shareSession(GPSSession sess) {
         File mSessFile = new File(dirFile.getPath(),sess.getFileName());
 
@@ -575,6 +633,9 @@ public class MainActivity extends ActionBarActivity {
         startActivity(sendIntent);
     }
 
+    /*
+    Handles session deletion from external memory
+     */
     private void deleteSession(GPSSession sess) {
         File mSessFile = new File(dirFile.getPath(),sess.getFileName());
         Log.v(TAG,"deteleting "+mSessFile.getAbsolutePath());
@@ -613,6 +674,9 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    /*
+    Asynchronous task that handles actual sending of file to dropbox.
+     */
     private class DBSendFileTask extends AsyncTask<File, Void, DropboxAPI.Entry> {
 
         // This function is called in the background thread
@@ -680,6 +744,10 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+
+    /*
+    Helper methods...
+     */
 
     public static String getDBDirName() {
         return dbDirName;

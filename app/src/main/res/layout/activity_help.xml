@@ -11,22 +11,12 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    tools:context="com.mahali.gpslogger.SettingsActivity">
+    tools:context="com.mahali.gpslogger.HelpActivity"
+    android:weightSum="1">
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_set_db_dir"
-            android:onClick="setDBDir" />
-        <EditText android:id="@+id/db_dir_name"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="(default)" />
 
     </LinearLayout>
 
@@ -34,17 +24,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_delete_files"
-            android:onClick="deleteFiles" />
-        <EditText android:id="@+id/delete_string"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="(no delete)" />
-
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="New Text"
+        android:id="@+id/help_text"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

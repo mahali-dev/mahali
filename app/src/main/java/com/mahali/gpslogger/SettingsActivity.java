@@ -37,6 +37,9 @@ import android.widget.Toast;
 import java.io.File;
 
 
+/*
+This class handles a menu for various settings for the app
+ */
 public class SettingsActivity extends ActionBarActivity {
 
     private final String TAG = SettingsActivity.class.getSimpleName();

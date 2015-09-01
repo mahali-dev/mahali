@@ -15,9 +15,9 @@
     <string name="button_load">Load fom external</string>
     <string name="button_save">Save</string>
     <string name="button_cancel">Cancel</string>
-    <string name="button_set_ip">Set Server IP </string>
-    <string name="button_set_port">Set Server Port </string>
-    <string name="button_download_files">Download files from server</string>
+    <string name="button_set_db_dir">Set DB upload dir </string>
+    <!--<string name="button_set_port">Set Server Port </string>-->
+    <!--<string name="button_download_files">Download files from server</string>-->
     <string name="button_delete_files">Delete files with substring: </string>
 
     <string-array name="sessionLongMenu">

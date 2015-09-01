@@ -92,7 +92,7 @@ public class MainActivity extends ActionBarActivity {
     private final String mahali_directory = "mahali";
     private static String[] gpsFileExtensions = {".nvd",".jps",".bin","MAHALI"};
 
-    // The directory for the user's public documents directory.
+    // The qualified name of the user's current mahali-app-created file on this android device. Located in mahali_directory.
     private static File dirFile;
     File sessFile;
     BufferedOutputStream bufOS = null;
@@ -109,12 +109,8 @@ public class MainActivity extends ActionBarActivity {
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.AUTO;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
-    //    private static final String serverIP = "18.189.57.53"; //for Kit laptop
-//    private static final String serverIP = "192.168.0.106"; //for Kit home
-    private static String serverIP = "18.111.63.194"; //for Ryan edison
-//    private static final String serverIP = "18.111.42.103"; //for edison
-//    private static final String serverPort = "5000";
-    private static String serverPort = "8080"; // For Ryan edison
+    // the full path of the directory in dropbox to which files will be uploaded for the "quick upload" option (a single tap on a file in the mahali main screen)
+    private static String dbDirName = "/Brazil_2015_data/";
 
     // Following code is for the Dropbox upload notification
     // Notification code from http://developer.android.com/guide/topics/ui/notifiers/notifications.html
@@ -183,7 +179,7 @@ public class MainActivity extends ActionBarActivity {
 
         updateSessionListView();
 
-        // this method handles the selection of sessions from the list
+        // this method handles the selection of sessions from the list (single quick tap on session)
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
@@ -191,9 +187,7 @@ public class MainActivity extends ActionBarActivity {
                 GPSSession fullObject = (GPSSession) o;
                 Log.i(TAG, "You have chosen: " + " " + fullObject.getFileName());
 
-                //TODO: implement a selection menu in front of these options...
-
-                // Try to upload the file to dropbox for the time being
+                // Try to upload the file to dropbox
                 sendToDB(fullObject.getAbsolutePath());
             }
         });
@@ -216,6 +210,10 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    /*
+    The below handles a long press by the user on an individual session. It allows the user to share a session file via any of the available share options on the device (via the standard share api)
+    Also, the user can delete a session file from the device's external memory.
+    */
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
@@ -584,7 +582,9 @@ public class MainActivity extends ActionBarActivity {
         updateSessionListView();
     }
 
-    // Send file to DropBox
+    /*
+    Send file to DropBox. This method is called when the user performs a quick tap on an individual session, and allows for quick upload to user specified dropbox directory.
+     */
     public void sendToDB(String absolutePath) {
         Log.i(TAG, "calling sendToDB");
 
@@ -645,7 +645,8 @@ public class MainActivity extends ActionBarActivity {
                     }
                 };
 
-                response = mDBApi.putFile("/Brazil_2015_data/"+fileToSend.getName(), inputStream, fileToSend.length(), null, listener);
+
+                response = mDBApi.putFile(dbDirName+fileToSend.getName(), inputStream, fileToSend.length(), null, listener);
             } catch (DropboxException e) {
                 Log.e(TAG,"DropBox putfile failed!");
             }
@@ -680,21 +681,12 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-
-    public static String getServerIP() {
-        return serverIP;
+    public static String getDBDirName() {
+        return dbDirName;
     }
 
-    public static String getServerPort() {
-        return serverPort;
-    }
-
-    public static void setServerIP(String serverIP) {
-        MainActivity.serverIP = serverIP;
-    }
-
-    public static void setServerPort(String serverPort) {
-        MainActivity.serverPort = serverPort;
+    public static void setDBDirName(String dbDirName) {
+        MainActivity.dbDirName = dbDirName;
     }
 
     public static File getDirFile() {

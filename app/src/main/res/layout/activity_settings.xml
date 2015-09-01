@@ -20,48 +20,19 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/button_set_ip"
-            android:onClick="setIP" />
-        <EditText android:id="@+id/server_ip"
+            android:text="@string/button_set_db_dir"
+            android:onClick="setDBDir" />
+        <EditText android:id="@+id/db_dir_name"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="0.0.0.0" />
+            android:hint="(default)" />
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_set_port"
-            android:onClick="setPort" />
-        <EditText android:id="@+id/server_port"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="0" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_download_files"
-            android:onClick="downloadFiles" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content" >setDBDirsetDBDirsetDBDir
 
         <Button
             android:layout_width="wrap_content"

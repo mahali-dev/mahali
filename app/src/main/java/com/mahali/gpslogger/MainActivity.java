@@ -25,6 +25,7 @@
 
 package com.mahali.gpslogger;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -142,6 +143,11 @@ public class MainActivity extends ActionBarActivity {
     final int mId = 1;
 
 
+    // Misc
+
+    // Super hacky way of being able to access MainActivity instance from the activities it creates.
+    // TODO: unhack this
+    public static MainActivity firstInstance;
 
     /*
     Called on initial app startup. Sets up all main activity objects, handles resumption of existing dropbox authentication, sets up previous GPS session list, sets up click listener for quick tap DB upload
@@ -149,6 +155,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        firstInstance = this;
+
         setContentView(R.layout.activity_main);
 
         // TODO: pull a GPS recvr config file from dropbox
@@ -174,7 +182,7 @@ public class MainActivity extends ActionBarActivity {
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 
         // TODO: make access token editable?
-        // get value of DB OAuth2AccessToken from shared preferences file. If it's not present, will take value "not_created"
+        // get value of DB OAuth2AccessToken from shared preferences file. If it's not present, will take value "not_authenticated"
         String OAuth2AccessToken = sharedPref.getString("OAuth2AccessToken","not_authenticated");
 
         Log.i(TAG,"OAuth2AccessToken at startup: "+OAuth2AccessToken);
@@ -577,6 +585,17 @@ public class MainActivity extends ActionBarActivity {
         }
 
         updateSessionListView(); // update the session list in case we returned from the settings activity
+    }
+
+    public void unlinkDB() {
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("OAuth2AccessToken", "not_authenticated");
+        editor.commit();
+
+        Log.i(TAG, "Dropbox link destroyed");
+
+        Toast.makeText(MainActivity.this, "Now unlinked with DropBox. Restart app for change to take effect", Toast.LENGTH_LONG).show();
     }
 
     /*

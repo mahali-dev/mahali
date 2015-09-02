@@ -25,6 +25,7 @@
 
 package com.mahali.gpslogger;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -114,6 +115,13 @@ public class SettingsActivity extends ActionBarActivity {
         }
 
         Toast.makeText(this, "Files with substring "+delete_string+" deleted", Toast.LENGTH_LONG).show();
+
+    }
+
+    public void unlinkDBaccount(View view) {
+        MainActivity par = MainActivity.firstInstance;
+
+        par.unlinkDB();
 
     }
 

@@ -47,4 +47,11 @@
 
     </LinearLayout>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_unlink_db"
+        android:onClick="unlinkDBaccount"
+        android:id="@+id/button" />
+
 </LinearLayout>

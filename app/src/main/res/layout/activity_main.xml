@@ -1,0 +1,88 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Data capture is inactive"
+        android:id="@+id/textViewStatus"
+        android:editable="false"
+        android:background="#ffffffff"
+        android:nestedScrollingEnabled="false"
+        android:layout_below="@+id/toggleButtonCapture"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sessionListView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignEnd="@+id/textViewStatus"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/prevSessions"
+        android:dividerHeight="5dp"
+        android:longClickable="true" />
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sessionToggleOff"
+        android:id="@+id/toggleButtonCapture"
+        android:onClick="onSessionToggleClicked"
+        android:textOn="@string/sessionToggleOn"
+        android:textOff="@string/sessionToggleOff"
+        android:checked="false"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/toggleLabel"
+        android:id="@+id/textViewSessionStatus"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/toggleButtonCapture"
+        android:layout_alignBottom="@+id/toggleButtonCapture"
+        android:gravity="right|fill_vertical"
+        android:layout_toRightOf="@+id/buttonConfig"
+        android:layout_toEndOf="@+id/buttonConfig" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/prevSessionLabel"
+        android:id="@+id/prevSessions"
+        android:gravity="right|fill_vertical"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_config_gps"
+        android:id="@+id/buttonConfig"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:singleLine="false"
+        android:onClick="onConfigButtonClicked" />
+
+
+</RelativeLayout>

@@ -1,0 +1,36 @@
+<!--<menu xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--xmlns:tools="http://schemas.android.com/tools"-->
+<!--tools:context="com.mahali.gpslogger.SettingsActivity">-->
+<!--<item android:id="@+id/action_settings" android:title="@string/action_settings"-->
+    <!--android:orderInCategory="100" app:showAsAction="never" />-->
+<!--</menu>-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    tools:context="com.mahali.gpslogger.HelpActivity"
+    android:weightSum="1">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="New Text"
+        android:id="@+id/help_text"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>

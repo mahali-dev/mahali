@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/sessionSize"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:text="434"
+        >
+    </TextView>
+
+    <TextView
+        android:id="@+id/sizeLabel"
+        android:layout_toLeftOf="@+id/sessionSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:lines="1"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:text="Size: "
+        >
+    </TextView>
+
+    <TextView
+        android:id="@+id/sessionName"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/sizeLabel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:lines="1"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:text="010203_040506.nvd"
+        >
+    </TextView>
+
+</RelativeLayout>

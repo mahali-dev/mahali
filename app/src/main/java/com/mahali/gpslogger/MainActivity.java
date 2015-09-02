@@ -120,14 +120,13 @@ public class MainActivity extends ActionBarActivity {
     // Dropbox (DB) stuff
 
     //Required dropbox fields. Get app key, app secret, and access type from App Console on dropbox website. Make sure the key matches the key in AndroidManifest.xml!
-    // TODO: should these be editable?
-    private static final String APP_KEY = "iyagryef5rj55xn";//"2wmhe173wllfuwz";
-    private static final String APP_SECRET = "3axm6y8j67lovyb";//"2h6bixl3fsaxx6m";
+    private static final String APP_KEY = "2wmhe173wllfuwz"; //"iyagryef5rj55xn";
+    private static final String APP_SECRET = "2h6bixl3fsaxx6m"; //"3axm6y8j67lovyb";
     private static final Session.AccessType ACCESS_TYPE = Session.AccessType.AUTO;
     private DropboxAPI<AndroidAuthSession> mDBApi;
 
     // the full path of the directory in dropbox to which files will be uploaded for the "quick upload" option (a single tap on a file in the mahali main screen)
-    private static String dbDirName = "/Brazil_2015_data/";  //TODO: test this
+    private static String dbDirName = "/data/";
 
     // For the Dropbox upload notification
     // Notification code from http://developer.android.com/guide/topics/ui/notifiers/notifications.html
@@ -181,7 +180,6 @@ public class MainActivity extends ActionBarActivity {
         // SharedPreferences is a simple way to store basic key-value pairs. In this case we're using it to store dropbox configuration info
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 
-        // TODO: make access token editable?
         // get value of DB OAuth2AccessToken from shared preferences file. If it's not present, will take value "not_authenticated"
         String OAuth2AccessToken = sharedPref.getString("OAuth2AccessToken","not_authenticated");
 
@@ -595,7 +593,7 @@ public class MainActivity extends ActionBarActivity {
 
         Log.i(TAG, "Dropbox link destroyed");
 
-        Toast.makeText(MainActivity.this, "Now unlinked with DropBox. Restart app for change to take effect", Toast.LENGTH_LONG).show();
+        Toast.makeText(MainActivity.this, "Now unlinked with DropBox. Restart app NOW for change to take effect", Toast.LENGTH_LONG).show();
     }
 
     /*
